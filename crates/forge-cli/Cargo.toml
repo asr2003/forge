@@ -12,8 +12,8 @@ clap = { version = "4.5.23", features = ["derive"] }
 tracing = "0.1.41"
 tracing-subscriber = "0.3"
 inquire = "0.7.5"
-strum = "0.25"
-strum_macros = "0.25"
+strum = "0.26"
+strum_macros = "0.26"
 forge-engine = { path = "../forge-engine" }
 spinners = "4.1.1"
 colorize = "0.1.0"
