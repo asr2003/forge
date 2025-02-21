@@ -1,5 +1,6 @@
 use std::collections::BTreeMap;
 use std::path::PathBuf;
+
 use async_trait::async_trait;
 use forge_api::Model;
 
@@ -126,13 +127,9 @@ impl Command {
     /// # Returns
     /// * `Command::Attach` variant containing a vector of paths
     ///
-    /// # Example
-    /// ```
-    /// let cmd = Command::parse_attach("/attach img1.jpg img2.png");
-    /// ```
     ///
-    /// For shell completion, this function expects TAB completion to be handled by the shell,
-    /// which should complete:
+    /// For shell completion, this function expects TAB completion to be handled
+    /// by the shell, which should complete:
     /// - Directory paths (ending with /)
     /// - Image files (with extensions .jpg, .jpeg, .png, .gif, .webp, etc.)
     fn parse_attach(input: &str) -> Self {

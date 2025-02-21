@@ -35,6 +35,7 @@ mod tests {
             messages: vec![ContextMessage::ContentMessage(ContentMessage {
                 role: Role::User,
                 content: "test message".to_string(),
+                attachments: vec![],
                 tool_calls: None,
             })],
             tools: vec![],

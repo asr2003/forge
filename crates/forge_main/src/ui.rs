@@ -79,7 +79,7 @@ impl<F: API> UI<F> {
 
         // Display the banner in dimmed colors since we're in interactive mode
         banner::display()?;
-        
+
         let mut attachments = vec![];
 
         // Get initial input from file or prompt

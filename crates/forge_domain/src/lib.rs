@@ -1,4 +1,5 @@
 mod agent;
+mod attachments;
 mod chat_request;
 mod chat_response;
 mod config;
@@ -23,9 +24,9 @@ mod tool_name;
 mod tool_result;
 mod tool_usage;
 mod workflow;
-mod attachments;
 
 pub use agent::*;
+pub use attachments::*;
 pub use chat_request::*;
 pub use chat_response::*;
 pub use config::*;
@@ -50,7 +51,6 @@ pub use tool_name::*;
 pub use tool_result::*;
 pub use tool_usage::*;
 pub use workflow::*;
-pub use attachments::*;
 
 #[async_trait::async_trait]
 pub trait ProviderService: Send + Sync + 'static {

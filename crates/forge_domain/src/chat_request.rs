@@ -11,7 +11,11 @@ pub struct ChatRequest {
 }
 
 impl ChatRequest {
-    pub fn new(content: impl ToString, conversation_id: ConversationId, files: Vec<Attachment>) -> Self {
+    pub fn new(
+        content: impl ToString,
+        conversation_id: ConversationId,
+        files: Vec<Attachment>,
+    ) -> Self {
         Self { content: content.to_string(), conversation_id, files }
     }
 }

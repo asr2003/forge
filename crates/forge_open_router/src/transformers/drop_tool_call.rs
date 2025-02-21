@@ -53,6 +53,7 @@ mod tests {
                 ContextMessage::ContentMessage(ContentMessage {
                     role: Role::Assistant,
                     content: "Using tool".to_string(),
+                    attachments: vec![],
                     tool_calls: Some(vec![tool_call]),
                 }),
                 ContextMessage::ToolMessage(tool_result),

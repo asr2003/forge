@@ -273,7 +273,7 @@ impl From<ContextMessage> for OpenRouterMessage {
 
                     MessageContent::Parts(vec)
                 };
-                
+
                 OpenRouterMessage {
                     role: chat_message.role.into(),
                     content: Some(content),

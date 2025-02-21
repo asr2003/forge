@@ -43,7 +43,7 @@ impl Fixture {
                 agent.model = self.model.clone();
             });
 
-        let request = ChatRequest::new(self.task.clone(), conversation_id);
+        let request = ChatRequest::new(self.task.clone(), conversation_id, vec![]);
         api.chat(request)
             .await
             .unwrap()

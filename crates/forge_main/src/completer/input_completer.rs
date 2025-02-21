@@ -61,7 +61,8 @@ impl InputCompleter {
             return vec![];
         }
 
-        let file_name = input_path.file_name()
+        let file_name = input_path
+            .file_name()
             .and_then(|s| s.to_str())
             .unwrap_or("")
             .to_lowercase();
@@ -110,10 +111,10 @@ impl Completer for InputCompleter {
             // Get the current word being completed
             let words: Vec<&str> = cmd.split_whitespace().collect();
             if let Some(last_word) = words.last() {
-                return self.get_attach_suggestions(last_word, reedline::Span::new(
-                    pos - last_word.len(),
-                    pos
-                ));
+                return self.get_attach_suggestions(
+                    last_word,
+                    reedline::Span::new(pos - last_word.len(), pos),
+                );
             }
             return self.get_attach_suggestions("", reedline::Span::new(pos, pos));
         }
