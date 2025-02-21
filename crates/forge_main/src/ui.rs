@@ -1,12 +1,16 @@
+use std::path::PathBuf;
 use std::sync::Arc;
 
 use anyhow::Result;
+use base64::Engine;
 use colored::Colorize;
 use forge_api::{
-    AgentMessage, ChatRequest, ChatResponse, ConversationId, Model, Usage, Workflow, API,
+    AgentMessage, Attachment, ChatRequest, ChatResponse, ConversationId, Model, Usage, Workflow,
+    API,
 };
 use forge_display::TitleFormat;
 use forge_tracker::EventKind;
+use futures::TryFutureExt;
 use lazy_static::lazy_static;
 use tokio_stream::StreamExt;
 
@@ -68,12 +72,15 @@ impl<F: API> UI<F> {
         // Handle direct prompt if provided
         let prompt = self.cli.prompt.clone();
         if let Some(prompt) = prompt {
-            self.chat(prompt).await?;
+            // TODO: add --attach arg through which users can pass files
+            self.chat(prompt, vec![]).await?;
             return Ok(());
         }
 
         // Display the banner in dimmed colors since we're in interactive mode
         banner::display()?;
+        
+        let mut attachments = vec![];
 
         // Get initial input from file or prompt
         let mut input = match &self.cli.command {
@@ -101,7 +108,9 @@ impl<F: API> UI<F> {
                     continue;
                 }
                 Command::Message(ref content) => {
-                    if let Err(err) = self.chat(content.clone()).await {
+                    let chat_result = self.chat(content.clone(), attachments).await;
+                    attachments = vec![];
+                    if let Err(err) = chat_result {
                         CONSOLE.writeln(
                             TitleFormat::failed(format!("{:?}", err))
                                 .sub_title(self.state.usage.to_string())
@@ -127,6 +136,27 @@ impl<F: API> UI<F> {
 
                     input = self.console.prompt(None).await?;
                 }
+                Command::Attach(paths) => {
+                    if paths.is_empty() {
+                        CONSOLE.writeln(
+                            "Error: No file paths provided. Usage: /attach <file1> [file2 ...]",
+                        )?;
+                    } else {
+                        // Validate files exist and are images
+                        for path in &paths {
+                            if !path.exists() {
+                                CONSOLE.writeln(format!(
+                                    "Error: File not found: {}",
+                                    path.display()
+                                ))?;
+                            }
+                        }
+                        // TODO: somehow show the attachments from UI
+                        let new_attachments = prepare_attachments(paths).await;
+                        attachments.extend(new_attachments);
+                    }
+                    input = self.console.prompt(Some((&self.state).into())).await?;
+                }
             }
         }
 
@@ -140,7 +170,7 @@ impl<F: API> UI<F> {
         }
     }
 
-    async fn chat(&mut self, content: String) -> Result<()> {
+    async fn chat(&mut self, content: String, files: Vec<Attachment>) -> Result<()> {
         let conversation_id = match self.state.conversation_id {
             Some(ref id) => id.clone(),
             None => {
@@ -151,7 +181,7 @@ impl<F: API> UI<F> {
             }
         };
 
-        let chat = ChatRequest { content: content.clone(), conversation_id };
+        let chat = ChatRequest { content: content.clone(), conversation_id, files };
 
         tokio::spawn({
             let content = content.clone();
@@ -232,4 +262,30 @@ impl<F: API> UI<F> {
         }
         Ok(())
     }
+}
+
+const IMAGE_TYPES: &[&str] = &["jpg", "jpeg", "png", "gif", "webp"];
+
+pub async fn prepare_attachments(paths: Vec<PathBuf>) -> Vec<Attachment> {
+    futures::future::join_all(
+        paths
+            .into_iter()
+            .filter(|v| v.extension().is_some())
+            .filter(|v| IMAGE_TYPES.contains(&v.extension().unwrap().to_string_lossy().as_ref()))
+            .map(|v| {
+                let ext = v.extension().unwrap().to_string_lossy().to_string();
+                tokio::fs::read(v).map_ok(|v| {
+                    format!(
+                        "data:image/{};base64,{}",
+                        ext.strip_prefix('.').map(String::from).unwrap_or(ext),
+                        base64::engine::general_purpose::STANDARD.encode(v)
+                    )
+                })
+            }),
+    )
+    .await
+    .into_iter()
+    .filter_map(|v| v.ok())
+    .map(|v| Attachment { data: v })
+    .collect::<Vec<_>>()
 }

@@ -261,18 +261,32 @@ impl From<ToolCallFull> for OpenRouterToolCall {
 impl From<ContextMessage> for OpenRouterMessage {
     fn from(value: ContextMessage) -> Self {
         match value {
-            ContextMessage::ContentMessage(chat_message) => OpenRouterMessage {
-                role: chat_message.role.into(),
-                content: Some(MessageContent::Text(chat_message.content)),
-                name: None,
-                tool_call_id: None,
-                tool_calls: chat_message.tool_calls.map(|tool_calls| {
-                    tool_calls
-                        .into_iter()
-                        .map(OpenRouterToolCall::from)
-                        .collect()
-                }),
-            },
+            ContextMessage::ContentMessage(chat_message) => {
+                let content = if chat_message.attachments.is_empty() {
+                    MessageContent::Text(chat_message.content)
+                } else {
+                    let mut vec =
+                        vec![ContentPart::Text { text: chat_message.content, cache_control: None }];
+                    vec.extend(chat_message.attachments.into_iter().map(|v| {
+                        ContentPart::ImageUrl { image_url: ImageUrl { url: v.data, detail: None } }
+                    }));
+
+                    MessageContent::Parts(vec)
+                };
+                
+                OpenRouterMessage {
+                    role: chat_message.role.into(),
+                    content: Some(content),
+                    name: None,
+                    tool_call_id: None,
+                    tool_calls: chat_message.tool_calls.map(|tool_calls| {
+                        tool_calls
+                            .into_iter()
+                            .map(OpenRouterToolCall::from)
+                            .collect()
+                    }),
+                }
+            }
             ContextMessage::ToolMessage(tool_result) => OpenRouterMessage {
                 role: OpenRouterRole::Tool,
                 content: Some(MessageContent::Text(tool_result.to_string())),
@@ -318,6 +332,7 @@ mod tests {
         let user_message = ContextMessage::ContentMessage(ContentMessage {
             role: Role::User,
             content: "Hello".to_string(),
+            attachments: vec![],
             tool_calls: None,
         });
         let router_message = OpenRouterMessage::from(user_message);
@@ -339,6 +354,7 @@ mod tests {
         let message = ContextMessage::ContentMessage(ContentMessage {
             role: Role::User,
             content: xml_content.to_string(),
+            attachments: vec![],
             tool_calls: None,
         });
         let router_message = OpenRouterMessage::from(message);
@@ -356,6 +372,7 @@ mod tests {
         let assistant_message = ContextMessage::ContentMessage(ContentMessage {
             role: Role::Assistant,
             content: "Using tool".to_string(),
+            attachments: vec![],
             tool_calls: Some(vec![tool_call]),
         });
         let router_message = OpenRouterMessage::from(assistant_message);

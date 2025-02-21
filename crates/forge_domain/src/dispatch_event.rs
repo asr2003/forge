@@ -1,12 +1,13 @@
 use schemars::{schema_for, JsonSchema};
 use serde::{Deserialize, Serialize};
 
-use crate::{NamedTool, ToolCallFull, ToolDefinition, ToolName};
+use crate::{Attachment, NamedTool, ToolCallFull, ToolDefinition, ToolName};
 
 #[derive(Debug, JsonSchema, Deserialize, Serialize, Clone)]
 pub struct DispatchEvent {
     pub name: String,
     pub value: String,
+    pub attachments: Vec<Attachment>,
 }
 
 impl From<DispatchEvent> for UserContext {
@@ -43,12 +44,16 @@ impl DispatchEvent {
         serde_json::from_value(tool_call.arguments.clone()).ok()
     }
 
-    pub fn new(name: impl ToString, value: impl ToString) -> Self {
-        Self { name: name.to_string(), value: value.to_string() }
+    pub fn new(name: impl ToString, value: impl ToString, attachments: Vec<Attachment>) -> Self {
+        Self {
+            name: name.to_string(),
+            value: value.to_string(),
+            attachments,
+        }
     }
 
-    pub fn task(value: impl ToString) -> Self {
-        Self::new(Self::USER_TASK, value)
+    pub fn task(value: impl ToString, attachments: Vec<Attachment>) -> Self {
+        Self::new(Self::USER_TASK, value, attachments)
     }
 
     pub const USER_TASK: &'static str = "user_task";

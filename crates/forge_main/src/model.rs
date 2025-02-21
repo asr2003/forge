@@ -1,5 +1,6 @@
 use std::collections::BTreeMap;
-
+use std::path::PathBuf;
+use async_trait::async_trait;
 use forge_api::Model;
 
 use crate::info::Info;
@@ -48,10 +49,6 @@ impl From<&[Model]> for Info {
     }
 }
 
-use std::path::PathBuf;
-
-use async_trait::async_trait;
-
 /// Represents user input types in the chat application.
 ///
 /// This enum encapsulates all forms of input including:
@@ -73,6 +70,8 @@ pub enum Command {
     Exit,
     /// Lists the models available for use.
     Models,
+    /// Allows attaching one or more image files
+    Attach(Vec<PathBuf>),
 }
 
 impl Command {
@@ -88,6 +87,7 @@ impl Command {
             "/info".to_string(),
             "/exit".to_string(),
             "/models".to_string(),
+            "/attach".to_string(),
         ]
     }
 
@@ -109,8 +109,41 @@ impl Command {
             "/info" => Command::Info,
             "/exit" => Command::Exit,
             "/models" => Command::Models,
+            text if text.starts_with("/attach") => Command::parse_attach(text),
             text => Command::Message(text.to_string()),
         }
+    }
+
+    /// Parse attachment command and extract file paths.
+    ///
+    /// Supports auto-completion for:
+    /// - Directories
+    /// - Image files (common formats like jpg, png, gif, etc.)
+    ///
+    /// # Arguments
+    /// * `input` - Raw command input string starting with "/attach"
+    ///
+    /// # Returns
+    /// * `Command::Attach` variant containing a vector of paths
+    ///
+    /// # Example
+    /// ```
+    /// let cmd = Command::parse_attach("/attach img1.jpg img2.png");
+    /// ```
+    ///
+    /// For shell completion, this function expects TAB completion to be handled by the shell,
+    /// which should complete:
+    /// - Directory paths (ending with /)
+    /// - Image files (with extensions .jpg, .jpeg, .png, .gif, .webp, etc.)
+    fn parse_attach(input: &str) -> Self {
+        // The actual parsing remains simple since completion is handled by the shell
+        let paths: Vec<PathBuf> = input
+            .split_whitespace()
+            .skip(1) // Skip the /attach command
+            .filter(|v| v.ends_with(""))
+            .map(PathBuf::from)
+            .collect();
+        Command::Attach(paths)
     }
 }
 

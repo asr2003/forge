@@ -2,7 +2,7 @@ use derive_more::derive::{Display, From};
 use derive_setters::Setters;
 use serde::{Deserialize, Serialize};
 
-use super::{ToolCallFull, ToolResult};
+use super::{Attachment, ToolCallFull, ToolResult};
 use crate::{ToolChoice, ToolDefinition};
 
 /// Represents a message being sent to the LLM provider
@@ -15,10 +15,11 @@ pub enum ContextMessage {
 }
 
 impl ContextMessage {
-    pub fn user(content: impl ToString) -> Self {
+    pub fn user(content: impl ToString, attachments: Vec<Attachment>) -> Self {
         ContentMessage {
             role: Role::User,
             content: content.to_string(),
+            attachments,
             tool_calls: None,
         }
         .into()
@@ -28,6 +29,7 @@ impl ContextMessage {
         ContentMessage {
             role: Role::System,
             content: content.to_string(),
+            attachments: vec![],
             tool_calls: None,
         }
         .into()
@@ -39,16 +41,10 @@ impl ContextMessage {
         ContentMessage {
             role: Role::Assistant,
             content: content.to_string(),
+            attachments: vec![],
             tool_calls,
         }
         .into()
-    }
-
-    pub fn content(&self) -> String {
-        match self {
-            ContextMessage::ContentMessage(message) => message.content.to_string(),
-            ContextMessage::ToolMessage(result) => serde_json::to_string(&result.content).unwrap(),
-        }
     }
 
     pub fn tool_result(result: ToolResult) -> Self {
@@ -68,6 +64,7 @@ impl ContextMessage {
 pub struct ContentMessage {
     pub role: Role,
     pub content: String,
+    pub attachments: Vec<Attachment>,
     pub tool_calls: Option<Vec<ToolCallFull>>,
 }
 
@@ -76,6 +73,7 @@ impl ContentMessage {
         Self {
             role: Role::Assistant,
             content: content.to_string(),
+            attachments: vec![],
             tool_calls: None,
         }
     }
@@ -215,7 +213,7 @@ mod tests {
     #[test]
     fn test_insert_system_message() {
         let request = Context::default()
-            .add_message(ContextMessage::user("Do something"))
+            .add_message(ContextMessage::user("Do something", vec![]))
             .set_first_system_message("A system message");
 
         assert_eq!(
