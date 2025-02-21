@@ -49,12 +49,10 @@ impl InputCompleter {
             } else {
                 PathBuf::from("/")
             }
+        } else if let Some(parent) = input_path.parent() {
+            self.walker.get_cwd().join(parent)
         } else {
-            if let Some(parent) = input_path.parent() {
-                self.walker.get_cwd().join(parent)
-            } else {
-                self.walker.get_cwd()
-            }
+            self.walker.get_cwd()
         };
 
         if !search_dir.exists() || !search_dir.is_dir() {
