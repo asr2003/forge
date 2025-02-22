@@ -35,14 +35,14 @@ impl From<&[Model]> for Info {
         for (provider, provider_models) in models_by_provider.iter() {
             info = info.add_title(provider.to_string());
             for model in provider_models {
-                info = info.add_item(
-                    &model.name,
-                    format!(
-                        "{} ({})",
-                        model.id,
-                        humanize_context_length(model.context_length)
-                    ),
-                );
+                if let Some(context_length) = model.context_length {
+                    info = info.add_item(
+                        &model.name,
+                        format!("{} ({})", model.id, humanize_context_length(context_length)),
+                    );
+                } else {
+                    info = info.add_item(&model.name, format!("{}", model.id));
+                }
             }
         }
 
@@ -71,6 +71,8 @@ pub enum Command {
     Exit,
     /// Lists the models available for use.
     Models,
+    /// Dumps the current conversation into a json file
+    Dump,
     /// Allows attaching one or more image files
     Attach(Vec<PathBuf>),
 }
@@ -88,6 +90,7 @@ impl Command {
             "/info".to_string(),
             "/exit".to_string(),
             "/models".to_string(),
+            "/dump".to_string(),
             "/attach".to_string(),
         ]
     }
@@ -110,6 +113,7 @@ impl Command {
             "/info" => Command::Info,
             "/exit" => Command::Exit,
             "/models" => Command::Models,
+            "/dump" => Command::Dump,
             text if text.starts_with("/attach") => Command::parse_attach(text),
             text => Command::Message(text.to_string()),
         }

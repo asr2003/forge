@@ -1,6 +1,7 @@
 use derive_more::derive::{Display, From};
 use derive_setters::Setters;
 use serde::{Deserialize, Serialize};
+use tracing::debug;
 
 use super::{Attachment, ToolCallFull, ToolResult};
 use crate::{ToolChoice, ToolDefinition};
@@ -9,6 +10,7 @@ use crate::{ToolChoice, ToolDefinition};
 /// NOTE: ToolResults message are part of the larger Request object and not part
 /// of the message.
 #[derive(Clone, Debug, Deserialize, From, PartialEq, Serialize)]
+#[serde(rename_all = "snake_case")]
 pub enum ContextMessage {
     ContentMessage(ContentMessage),
     ToolMessage(ToolResult),
@@ -61,6 +63,7 @@ impl ContextMessage {
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize, Setters)]
 #[setters(strip_option, into)]
+#[serde(rename_all = "snake_case")]
 pub struct ContentMessage {
     pub role: Role,
     pub content: String,
@@ -105,7 +108,10 @@ impl Context {
     }
 
     pub fn add_message(mut self, content: impl Into<ContextMessage>) -> Self {
-        self.messages.push(content.into());
+        let message = content.into();
+        debug!(message = ?message, "Adding message to context");
+        self.messages.push(message);
+
         self
     }
 
@@ -114,12 +120,8 @@ impl Context {
         self
     }
 
-    pub fn extend_messages(mut self, messages: Vec<impl Into<ContextMessage>>) -> Self {
-        self.messages.extend(messages.into_iter().map(Into::into));
-        self
-    }
-
     pub fn add_tool_results(mut self, results: Vec<ToolResult>) -> Self {
+        debug!(results = ?results, "Adding tool results to context");
         self.messages
             .extend(results.into_iter().map(ContextMessage::tool_result));
         self

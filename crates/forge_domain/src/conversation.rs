@@ -6,7 +6,7 @@ use derive_setters::Setters;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{Agent, AgentId, Context, Error, Workflow};
+use crate::{Agent, AgentId, Context, DispatchEvent, Error, Workflow};
 
 #[derive(Debug, Display, Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
 #[serde(transparent)]
@@ -33,8 +33,8 @@ pub struct Conversation {
     pub id: ConversationId,
     pub workflow: Workflow,
     pub archived: bool,
-    pub title: Option<String>,
     pub state: HashMap<AgentId, AgentState>,
+    pub events: HashMap<String, DispatchEvent>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -49,8 +49,8 @@ impl Conversation {
             id,
             workflow,
             archived: false,
-            title: None,
             state: Default::default(),
+            events: Default::default(),
         }
     }
 
@@ -62,7 +62,8 @@ impl Conversation {
         self.workflow
             .agents
             .iter()
-            .filter(|a| self.turn_count(&a.id).unwrap_or(0) < a.max_turns)
+            .filter(|a| a.enable)
+            .filter(|a| self.turn_count(&a.id).unwrap_or(0) < a.max_turns.unwrap_or(u64::MAX))
             .filter(|a| a.subscribe.contains(&event_name.to_string()))
             .cloned()
             .collect::<Vec<_>>()

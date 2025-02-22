@@ -4,10 +4,7 @@ use forge_api::{AgentMessage, ChatRequest, ChatResponse, ForgeAPI, ModelId, API}
 use tokio_stream::StreamExt;
 
 const MAX_RETRIES: usize = 5;
-const WORKFLOW_PATH: &str = concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/../../templates/workflows/default.toml"
-);
+const WORKFLOW_PATH: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/test_workflow.yaml");
 
 /// Test fixture for API testing that supports parallel model validation
 struct Fixture {
@@ -30,18 +27,16 @@ impl Fixture {
     /// Get model response as text
     async fn get_model_response(&self) -> String {
         let api = self.api();
-        let mut workflow = api.load(&PathBuf::from(WORKFLOW_PATH)).await.unwrap();
-        let conversation_id = api.init(workflow.clone()).await.unwrap();
+        // load the workflow from path
+        let mut workflow = api.load(Some(&PathBuf::from(WORKFLOW_PATH))).await.unwrap();
 
-        // Reset the workflow model
-        workflow
-            .agents
-            .iter_mut()
-            .find(|a| a.id.as_str() == "developer")
-            .iter_mut()
-            .for_each(|agent| {
-                agent.model = self.model.clone();
-            });
+        // in workflow, replace all models with the model we want to test.
+        workflow.agents.iter_mut().for_each(|agent| {
+            agent.model = self.model.clone();
+        });
+
+        // initialize the conversation by storing the workflow.
+        let conversation_id = api.init(workflow).await.unwrap();
 
         let request = ChatRequest::new(self.task.clone(), conversation_id, vec![]);
         api.chat(request)

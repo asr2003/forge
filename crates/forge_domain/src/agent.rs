@@ -58,6 +58,11 @@ pub struct Agent {
     #[serde(skip_serializing_if = "is_true", default = "truth")]
     pub ephemeral: bool,
 
+    /// Flag to enable/disable the agent. When disabled (false), the agent will
+    /// be completely ignored during orchestration execution.
+    #[serde(skip_serializing_if = "is_true", default = "truth")]
+    pub enable: bool,
+
     /// Tools that the agent can use    
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub tools: Vec<ToolName>,
@@ -66,17 +71,18 @@ pub struct Agent {
     pub transforms: Vec<Transform>,
 
     /// Used to specify the events the agent is interested in    
-    #[serde(skip_serializing_if = "Vec::is_empty")]
+    #[serde(skip_serializing_if = "Vec::is_empty", default)]
     pub subscribe: Vec<String>,
 
     /// Maximum number of turns the agent can take    
-    pub max_turns: u64,
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub max_turns: Option<u64>,
 }
 
 /// Transformations that can be applied to the agent's context before sending it
 /// upstream to the provider.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "type")]
+#[serde(tag = "type", rename_all = "snake_case")]
 pub enum Transform {
     /// Compresses multiple assistant messages into a single message
     Assistant {

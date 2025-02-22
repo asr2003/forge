@@ -1,9 +1,0 @@
----
-source: crates/forge_open_router/src/request.rs
-expression: router_message
-snapshot_kind: text
----
-{
-  "role": "user",
-  "content": "Hello"
-}

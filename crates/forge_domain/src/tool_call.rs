@@ -15,6 +15,10 @@ impl ToolCallId {
     pub fn new(value: impl ToString) -> Self {
         ToolCallId(value.to_string())
     }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
 }
 
 /// Contains a part message for using a tool. This is received as a part of the
@@ -58,6 +62,7 @@ impl ToolCall {
 /// of the response from the model when streaming is disabled.
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize, Setters)]
 #[setters(strip_option, into)]
+#[serde(rename_all = "snake_case")]
 pub struct ToolCallFull {
     pub name: ToolName,
     pub call_id: Option<ToolCallId>,

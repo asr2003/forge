@@ -4,10 +4,8 @@ use std::sync::Arc;
 use anyhow::Result;
 use base64::Engine;
 use colored::Colorize;
-use forge_api::{
-    AgentMessage, Attachment, ChatRequest, ChatResponse, ConversationId, Model, Usage, Workflow,
-    API,
-};
+use forge_api::{AgentMessage, Attachment, ChatRequest, ChatResponse, ConversationId, Model, Usage, 
+    API};
 use forge_display::TitleFormat;
 use forge_tracker::EventKind;
 use futures::TryFutureExt;
@@ -56,15 +54,13 @@ impl<F: API> UI<F> {
         // Parse CLI arguments first to get flags
 
         let env = api.environment();
-        let guard = log::init_tracing(env.clone())?;
-
         Ok(Self {
             state: Default::default(),
             api,
-            console: Console::new(env),
+            console: Console::new(env.clone()),
             cli,
             models: None,
-            _guard: guard,
+            _guard: log::init_tracing(env.clone())?,
         })
     }
 
@@ -90,6 +86,12 @@ impl<F: API> UI<F> {
 
         loop {
             match input {
+                Command::Dump => {
+                    self.handle_dump().await?;
+                    let prompt_input = Some((&self.state).into());
+                    input = self.console.prompt(prompt_input).await?;
+                    continue;
+                }
                 Command::New => {
                     banner::display()?;
                     self.state = Default::default();
@@ -163,18 +165,14 @@ impl<F: API> UI<F> {
         Ok(())
     }
 
-    async fn init_workflow(&self) -> anyhow::Result<Workflow> {
-        match self.cli.workflow {
-            Some(ref path) => self.api.load(path).await,
-            None => Ok(include_str!("../../../templates/workflows/default.toml").parse()?),
-        }
-    }
-
     async fn chat(&mut self, content: String, files: Vec<Attachment>) -> Result<()> {
         let conversation_id = match self.state.conversation_id {
             Some(ref id) => id.clone(),
             None => {
-                let conversation_id = self.api.init(self.init_workflow().await?).await?;
+                let conversation_id = self
+                    .api
+                    .init(self.api.load(self.cli.workflow.as_deref()).await?)
+                    .await?;
                 self.state.conversation_id = Some(conversation_id.clone());
 
                 conversation_id
@@ -183,12 +181,7 @@ impl<F: API> UI<F> {
 
         let chat = ChatRequest { content: content.clone(), conversation_id, files };
 
-        tokio::spawn({
-            let content = content.clone();
-            async move {
-                let _ = TRACKER.dispatch(EventKind::Prompt(content)).await;
-            }
-        });
+        tokio::spawn(TRACKER.dispatch(EventKind::Prompt(content)));
         match self.api.chat(chat).await {
             Ok(mut stream) => self.handle_chat_stream(&mut stream).await,
             Err(err) => Err(err),
@@ -215,6 +208,41 @@ impl<F: API> UI<F> {
                 }
             }
         }
+    }
+
+    async fn handle_dump(&mut self) -> Result<()> {
+        if let Some(conversation_id) = self.state.conversation_id.clone() {
+            let conversation = self.api.conversation(&conversation_id).await?;
+            if let Some(conversation) = conversation {
+                let timestamp = chrono::Local::now().format("%Y-%m-%d_%H-%M-%S");
+                let path = self
+                    .state
+                    .current_title
+                    .as_ref()
+                    .map_or(format!("{timestamp}"), |title| {
+                        format!("{timestamp}-{title}")
+                    });
+
+                let path = format!("{path}.json");
+
+                let content = serde_json::to_string_pretty(&conversation)?;
+                tokio::fs::write(path.as_str(), content).await?;
+
+                CONSOLE.writeln(
+                    TitleFormat::success("dump")
+                        .sub_title(format!("path: {path}"))
+                        .format(),
+                )?;
+            } else {
+                CONSOLE.writeln(
+                    TitleFormat::failed("dump")
+                        .error("conversation not found")
+                        .sub_title(format!("conversation_id: {conversation_id}"))
+                        .format(),
+                )?;
+            }
+        }
+        Ok(())
     }
 
     fn handle_chat_response(&mut self, message: AgentMessage<ChatResponse>) -> Result<()> {

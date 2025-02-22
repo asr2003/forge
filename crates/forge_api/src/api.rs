@@ -67,7 +67,14 @@ impl<F: App + Infrastructure> API for ForgeAPI<F> {
         self.app.environment_service().get_environment().clone()
     }
 
-    async fn load(&self, path: &Path) -> anyhow::Result<Workflow> {
+    async fn load(&self, path: Option<&Path>) -> anyhow::Result<Workflow> {
         self._loader.load(path).await
+    }
+
+    async fn conversation(
+        &self,
+        conversation_id: &ConversationId,
+    ) -> anyhow::Result<Option<Conversation>> {
+        self.app.conversation_service().get(conversation_id).await
     }
 }

@@ -10,16 +10,24 @@ use serde::{Deserialize, Serialize};
 pub struct Environment {
     /// The operating system of the environment.
     pub os: String,
+    /// The process ID of the current process.
+    pub pid: u32,
     /// The current working directory.
     pub cwd: PathBuf,
     /// The home directory.
     pub home: Option<PathBuf>,
     /// The shell being used.
     pub shell: String,
-    /// The Forge API key.
-    pub api_key: String,
+    /// The Qdrant API Key
+    pub qdrant_key: Option<String>,
+    /// The Qdrant Cluster
+    pub qdrant_cluster: Option<String>,
     /// The base path relative to which everything else stored.
     pub base_path: PathBuf,
+    /// The Forge API key.
+    pub provider_key: String,
+    /// The base url for provider
+    pub provider_url: String,
 }
 
 impl Environment {

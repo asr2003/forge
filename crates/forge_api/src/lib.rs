@@ -34,6 +34,14 @@ pub trait API {
     /// Creates a new conversation with the given workflow
     async fn init(&self, workflow: Workflow) -> anyhow::Result<ConversationId>;
 
-    /// Loads a workflow from a given path
-    async fn load(&self, path: &Path) -> anyhow::Result<Workflow>;
+    /// Loads a workflow configuration from the given path, current directory's
+    /// forge.yaml, or embedded default configuration in that order of
+    /// precedence
+    async fn load(&self, path: Option<&Path>) -> anyhow::Result<Workflow>;
+
+    /// Returns the conversation with the given ID
+    async fn conversation(
+        &self,
+        conversation_id: &ConversationId,
+    ) -> anyhow::Result<Option<Conversation>>;
 }

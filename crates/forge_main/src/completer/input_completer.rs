@@ -2,7 +2,6 @@ use std::path::{Path, PathBuf};
 
 use forge_walker::Walker;
 use reedline::{Completer, Suggestion};
-use tracing::info;
 
 use crate::completer::search_term::SearchTerm;
 use crate::completer::CommandCompleter;
@@ -102,8 +101,6 @@ impl InputCompleter {
 
 impl Completer for InputCompleter {
     fn complete(&mut self, line: &str, pos: usize) -> Vec<Suggestion> {
-        info!("Completing line: '{}' pos: {}", line, pos);
-
         // Handle /attach command completion
         if let Some(cmd) = line[..pos].strip_prefix("/attach ") {
             // Get the current word being completed
@@ -127,8 +124,6 @@ impl Completer for InputCompleter {
         }
 
         if let Some(query) = SearchTerm::new(line, pos).process() {
-            info!("Search term: {:?}", query);
-
             let files = self.walker.get_blocking().unwrap_or_default();
             files
                 .into_iter()
