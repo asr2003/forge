@@ -1,17 +1,14 @@
-use std::path::PathBuf;
+use std::collections::HashSet;
 use std::sync::Arc;
 
 use anyhow::Result;
-use base64::Engine;
 use colored::Colorize;
 use forge_api::{AgentMessage, Attachment, ChatRequest, ChatResponse, ConversationId, Model, Usage, 
     API};
 use forge_display::TitleFormat;
 use forge_tracker::EventKind;
-use futures::TryFutureExt;
 use lazy_static::lazy_static;
 use tokio_stream::StreamExt;
-
 use crate::cli::Cli;
 use crate::console::CONSOLE;
 use crate::info::Info;
@@ -69,14 +66,14 @@ impl<F: API> UI<F> {
         let prompt = self.cli.prompt.clone();
         if let Some(prompt) = prompt {
             // TODO: add --attach arg through which users can pass files
-            self.chat(prompt, vec![]).await?;
+            self.chat(prompt, HashSet::new()).await?;
             return Ok(());
         }
 
         // Display the banner in dimmed colors since we're in interactive mode
         banner::display()?;
 
-        let mut attachments = vec![];
+        let mut attachments = HashSet::new();
 
         // Get initial input from file or prompt
         let mut input = match &self.cli.command {
@@ -111,7 +108,7 @@ impl<F: API> UI<F> {
                 }
                 Command::Message(ref content) => {
                     let chat_result = self.chat(content.clone(), attachments).await;
-                    attachments = vec![];
+                    attachments = HashSet::new();
                     if let Err(err) = chat_result {
                         CONSOLE.writeln(
                             TitleFormat::failed(format!("{:?}", err))
@@ -154,7 +151,7 @@ impl<F: API> UI<F> {
                             }
                         }
                         // TODO: somehow show the attachments from UI
-                        let new_attachments = prepare_attachments(paths).await;
+                        let new_attachments = forge_attachments::prepare_attachments(paths).await;
                         attachments.extend(new_attachments);
                     }
                     input = self.console.prompt(Some((&self.state).into())).await?;
@@ -165,7 +162,10 @@ impl<F: API> UI<F> {
         Ok(())
     }
 
-    async fn chat(&mut self, content: String, files: Vec<Attachment>) -> Result<()> {
+    async fn chat(&mut self, content: String, mut files: HashSet<Attachment>) -> Result<()> {
+        let (content, attachments) = forge_attachments::split_image_paths(content).await;
+        files.extend(attachments);
+        
         let conversation_id = match self.state.conversation_id {
             Some(ref id) => id.clone(),
             None => {
@@ -290,30 +290,4 @@ impl<F: API> UI<F> {
         }
         Ok(())
     }
-}
-
-const IMAGE_TYPES: &[&str] = &["jpg", "jpeg", "png", "gif", "webp"];
-
-pub async fn prepare_attachments(paths: Vec<PathBuf>) -> Vec<Attachment> {
-    futures::future::join_all(
-        paths
-            .into_iter()
-            .filter(|v| v.extension().is_some())
-            .filter(|v| IMAGE_TYPES.contains(&v.extension().unwrap().to_string_lossy().as_ref()))
-            .map(|v| {
-                let ext = v.extension().unwrap().to_string_lossy().to_string();
-                tokio::fs::read(v).map_ok(|v| {
-                    format!(
-                        "data:image/{};base64,{}",
-                        ext.strip_prefix('.').map(String::from).unwrap_or(ext),
-                        base64::engine::general_purpose::STANDARD.encode(v)
-                    )
-                })
-            }),
-    )
-    .await
-    .into_iter()
-    .filter_map(|v| v.ok())
-    .map(|v| Attachment { data: v })
-    .collect::<Vec<_>>()
 }

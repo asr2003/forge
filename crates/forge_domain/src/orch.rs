@@ -222,7 +222,7 @@ impl<A: App> Orchestrator<A> {
                 } => {
                     let mut summarize = Summarize::new(&mut context, *token_limit);
                     while let Some(mut summary) = summarize.summarize() {
-                        let input = DispatchEvent::new(input_key, summary.get(), vec![]);
+                        let input = DispatchEvent::new(input_key, summary.get(), HashSet::new());
                         self.init_agent(agent_id, &input).await?;
 
                         if let Some(value) = self.get_event(output_key).await? {
@@ -249,7 +249,7 @@ impl<A: App> Orchestrator<A> {
                     }
                 }
                 Transform::PassThrough { agent_id, input: input_key } => {
-                    let input = DispatchEvent::new(input_key, context.to_text(), vec![]);
+                    let input = DispatchEvent::new(input_key, context.to_text(), HashSet::new());
 
                     // NOTE: Tap transformers will not modify the context
                     self.init_agent(agent_id, &input).await?;

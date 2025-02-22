@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use schemars::{schema_for, JsonSchema};
 use serde::{Deserialize, Serialize};
 
@@ -7,7 +8,7 @@ use crate::{Attachment, NamedTool, ToolCallFull, ToolDefinition, ToolName};
 pub struct DispatchEvent {
     pub name: String,
     pub value: String,
-    pub attachments: Vec<Attachment>,
+    pub attachments: HashSet<Attachment>,
 }
 
 impl From<DispatchEvent> for UserContext {
@@ -44,7 +45,7 @@ impl DispatchEvent {
         serde_json::from_value(tool_call.arguments.clone()).ok()
     }
 
-    pub fn new(name: impl ToString, value: impl ToString, attachments: Vec<Attachment>) -> Self {
+    pub fn new(name: impl ToString, value: impl ToString, attachments: HashSet<Attachment>) -> Self {
         Self {
             name: name.to_string(),
             value: value.to_string(),
@@ -52,7 +53,7 @@ impl DispatchEvent {
         }
     }
 
-    pub fn task(value: impl ToString, attachments: Vec<Attachment>) -> Self {
+    pub fn task(value: impl ToString, attachments: HashSet<Attachment>) -> Self {
         Self::new(Self::USER_TASK, value, attachments)
     }
 

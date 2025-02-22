@@ -1033,16 +1033,15 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "async-trait",
- "base64 0.22.1",
  "chrono",
  "clap",
  "colored 3.0.0",
  "derive_setters",
  "forge_api",
+ "forge_attachments",
  "forge_display",
  "forge_tracker",
  "forge_walker",
- "futures",
  "insta",
  "lazy_static",
  "nu-ansi-term 0.50.1",
@@ -1122,6 +1121,16 @@ dependencies = [
  "tree-sitter-scala",
  "tree-sitter-typescript",
  "uuid",
+]
+
+[[package]]
+name = "forge_attachments"
+version = "0.1.0"
+dependencies = [
+ "base64 0.22.1",
+ "forge_domain",
+ "futures",
+ "tokio",
 ]
 
 [[package]]

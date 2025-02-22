@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use derive_more::derive::{Display, From};
 use derive_setters::Setters;
 use serde::{Deserialize, Serialize};
@@ -17,7 +18,7 @@ pub enum ContextMessage {
 }
 
 impl ContextMessage {
-    pub fn user(content: impl ToString, attachments: Vec<Attachment>) -> Self {
+    pub fn user(content: impl ToString, attachments: HashSet<Attachment>) -> Self {
         ContentMessage {
             role: Role::User,
             content: content.to_string(),
@@ -31,7 +32,7 @@ impl ContextMessage {
         ContentMessage {
             role: Role::System,
             content: content.to_string(),
-            attachments: vec![],
+            attachments: HashSet::new(),
             tool_calls: None,
         }
         .into()
@@ -43,7 +44,7 @@ impl ContextMessage {
         ContentMessage {
             role: Role::Assistant,
             content: content.to_string(),
-            attachments: vec![],
+            attachments: HashSet::new(),
             tool_calls,
         }
         .into()
@@ -67,7 +68,7 @@ impl ContextMessage {
 pub struct ContentMessage {
     pub role: Role,
     pub content: String,
-    pub attachments: Vec<Attachment>,
+    pub attachments: HashSet<Attachment>,
     pub tool_calls: Option<Vec<ToolCallFull>>,
 }
 
@@ -76,7 +77,7 @@ impl ContentMessage {
         Self {
             role: Role::Assistant,
             content: content.to_string(),
-            attachments: vec![],
+            attachments: HashSet::new(),
             tool_calls: None,
         }
     }
@@ -215,7 +216,7 @@ mod tests {
     #[test]
     fn test_insert_system_message() {
         let request = Context::default()
-            .add_message(ContextMessage::user("Do something", vec![]))
+            .add_message(ContextMessage::user("Do something", HashSet::new()))
             .set_first_system_message("A system message");
 
         assert_eq!(

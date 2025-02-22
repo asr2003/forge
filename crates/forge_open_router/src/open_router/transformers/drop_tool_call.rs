@@ -28,6 +28,7 @@ impl Transformer for DropToolCalls {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashSet;
     use forge_domain::{
         ContentMessage, Context, ContextMessage, Role, ToolCallFull, ToolCallId, ToolName,
         ToolResult,
@@ -53,7 +54,7 @@ mod tests {
                 ContextMessage::ContentMessage(ContentMessage {
                     role: Role::Assistant,
                     content: "Using tool".to_string(),
-                    attachments: vec![],
+                    attachments: HashSet::new(),
                     tool_calls: Some(vec![tool_call]),
                 }),
                 ContextMessage::ToolMessage(tool_result),

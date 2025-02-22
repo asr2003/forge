@@ -319,6 +319,7 @@ pub enum OpenRouterRole {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashSet;
     use forge_domain::{
         ContentMessage, ContextMessage, Role, ToolCallFull, ToolCallId, ToolName, ToolResult,
     };
@@ -332,7 +333,7 @@ mod tests {
         let user_message = ContextMessage::ContentMessage(ContentMessage {
             role: Role::User,
             content: "Hello".to_string(),
-            attachments: vec![],
+            attachments: HashSet::new(),
             tool_calls: None,
         });
         let router_message = OpenRouterMessage::from(user_message);
@@ -354,7 +355,7 @@ mod tests {
         let message = ContextMessage::ContentMessage(ContentMessage {
             role: Role::User,
             content: xml_content.to_string(),
-            attachments: vec![],
+            attachments: HashSet::new(),
             tool_calls: None,
         });
         let router_message = OpenRouterMessage::from(message);
@@ -372,7 +373,7 @@ mod tests {
         let assistant_message = ContextMessage::ContentMessage(ContentMessage {
             role: Role::Assistant,
             content: "Using tool".to_string(),
-            attachments: vec![],
+            attachments: HashSet::new(),
             tool_calls: Some(vec![tool_call]),
         });
         let router_message = OpenRouterMessage::from(assistant_message);

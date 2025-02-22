@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use derive_setters::Setters;
 
 use crate::{Attachment, ConversationId};
@@ -7,14 +8,14 @@ use crate::{Attachment, ConversationId};
 pub struct ChatRequest {
     pub content: String,
     pub conversation_id: ConversationId,
-    pub files: Vec<Attachment>,
+    pub files: HashSet<Attachment>,
 }
 
 impl ChatRequest {
     pub fn new(
         content: impl ToString,
         conversation_id: ConversationId,
-        files: Vec<Attachment>,
+        files: HashSet<Attachment>,
     ) -> Self {
         Self { content: content.to_string(), conversation_id, files }
     }

@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::path::PathBuf;
 
 use forge_api::{AgentMessage, ChatRequest, ChatResponse, ForgeAPI, ModelId, API};
@@ -38,7 +39,7 @@ impl Fixture {
         // initialize the conversation by storing the workflow.
         let conversation_id = api.init(workflow).await.unwrap();
 
-        let request = ChatRequest::new(self.task.clone(), conversation_id, vec![]);
+        let request = ChatRequest::new(self.task.clone(), conversation_id, HashSet::new());
         api.chat(request)
             .await
             .unwrap()
