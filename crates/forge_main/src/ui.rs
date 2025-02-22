@@ -3,12 +3,14 @@ use std::sync::Arc;
 
 use anyhow::Result;
 use colored::Colorize;
-use forge_api::{AgentMessage, Attachment, ChatRequest, ChatResponse, ConversationId, Model, Usage, 
-    API};
+use forge_api::{
+    AgentMessage, Attachment, ChatRequest, ChatResponse, ConversationId, Model, Usage, API,
+};
 use forge_display::TitleFormat;
 use forge_tracker::EventKind;
 use lazy_static::lazy_static;
 use tokio_stream::StreamExt;
+
 use crate::cli::Cli;
 use crate::console::CONSOLE;
 use crate::info::Info;
@@ -165,7 +167,7 @@ impl<F: API> UI<F> {
     async fn chat(&mut self, content: String, mut files: HashSet<Attachment>) -> Result<()> {
         let (content, attachments) = forge_attachments::split_image_paths(content).await;
         files.extend(attachments);
-        
+
         let conversation_id = match self.state.conversation_id {
             Some(ref id) => id.clone(),
             None => {

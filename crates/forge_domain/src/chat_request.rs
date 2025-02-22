@@ -1,4 +1,5 @@
 use std::collections::HashSet;
+
 use derive_setters::Setters;
 
 use crate::{Attachment, ConversationId};

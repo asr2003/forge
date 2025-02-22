@@ -1,8 +1,9 @@
+use std::collections::HashSet;
+use std::path::Path;
+
 use base64::Engine;
 use forge_domain::Attachment;
 use futures::TryFutureExt;
-use std::collections::HashSet;
-use std::path::Path;
 use lazy_static::lazy_static;
 
 // TODO: bring pdf support, pdf is just a collection of images.

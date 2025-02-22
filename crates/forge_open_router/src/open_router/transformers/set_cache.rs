@@ -25,6 +25,7 @@ impl Transformer for SetCache {
 #[cfg(test)]
 mod tests {
     use std::collections::HashSet;
+
     use forge_domain::{ContentMessage, Context, ContextMessage, ModelId, Role};
 
     use super::*;

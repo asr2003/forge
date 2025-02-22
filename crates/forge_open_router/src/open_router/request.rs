@@ -320,6 +320,7 @@ pub enum OpenRouterRole {
 #[cfg(test)]
 mod tests {
     use std::collections::HashSet;
+
     use forge_domain::{
         ContentMessage, ContextMessage, Role, ToolCallFull, ToolCallId, ToolName, ToolResult,
     };

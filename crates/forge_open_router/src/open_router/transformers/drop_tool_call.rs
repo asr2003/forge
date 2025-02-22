@@ -29,6 +29,7 @@ impl Transformer for DropToolCalls {
 #[cfg(test)]
 mod tests {
     use std::collections::HashSet;
+
     use forge_domain::{
         ContentMessage, Context, ContextMessage, Role, ToolCallFull, ToolCallId, ToolName,
         ToolResult,

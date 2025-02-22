@@ -155,6 +155,7 @@ impl ProviderService for Anthropic {
 #[cfg(test)]
 mod tests {
     use std::collections::HashSet;
+
     use forge_domain::{
         Context, ContextMessage, ToolCallFull, ToolCallId, ToolChoice, ToolName, ToolResult,
     };

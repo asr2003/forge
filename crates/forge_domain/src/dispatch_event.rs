@@ -1,4 +1,5 @@
 use std::collections::HashSet;
+
 use schemars::{schema_for, JsonSchema};
 use serde::{Deserialize, Serialize};
 
@@ -45,7 +46,11 @@ impl DispatchEvent {
         serde_json::from_value(tool_call.arguments.clone()).ok()
     }
 
-    pub fn new(name: impl ToString, value: impl ToString, attachments: HashSet<Attachment>) -> Self {
+    pub fn new(
+        name: impl ToString,
+        value: impl ToString,
+        attachments: HashSet<Attachment>,
+    ) -> Self {
         Self {
             name: name.to_string(),
             value: value.to_string(),
