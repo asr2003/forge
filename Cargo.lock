@@ -1130,6 +1130,7 @@ dependencies = [
  "base64 0.22.1",
  "forge_domain",
  "futures",
+ "lazy_static",
  "tokio",
 ]
 

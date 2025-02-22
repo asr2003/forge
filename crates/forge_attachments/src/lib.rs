@@ -3,10 +3,21 @@ use forge_domain::Attachment;
 use futures::TryFutureExt;
 use std::collections::HashSet;
 use std::path::Path;
+use lazy_static::lazy_static;
 
 // TODO: bring pdf support, pdf is just a collection of images.
 
-const IMAGE_TYPES: &[&str] = &["jpg", "jpeg", "png", "gif", "webp"];
+lazy_static! {
+    static ref IMAGE_TYPES: HashSet<&'static str> = {
+        let mut set = HashSet::new();
+        set.insert("jpg");
+        set.insert("jpeg");
+        set.insert("png");
+        set.insert("gif");
+        set.insert("webp");
+        set
+    };
+}
 
 pub async fn prepare_attachments<T: AsRef<Path>>(paths: Vec<T>) -> HashSet<Attachment> {
     futures::future::join_all(
@@ -14,7 +25,7 @@ pub async fn prepare_attachments<T: AsRef<Path>>(paths: Vec<T>) -> HashSet<Attac
             .into_iter()
             .map(|v| v.as_ref().to_path_buf())
             .filter(|v| v.extension().is_some())
-            .filter(|v| IMAGE_TYPES.contains(&v.extension().unwrap().to_string_lossy().as_ref()))
+            .filter(|v| IMAGE_TYPES.contains(v.extension().unwrap().to_string_lossy().as_ref()))
             .map(|v| {
                 let ext = v.extension().unwrap().to_string_lossy().to_string();
                 tokio::fs::read(v).map_ok(|v| {
