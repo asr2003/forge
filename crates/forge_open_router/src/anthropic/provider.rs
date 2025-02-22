@@ -175,7 +175,7 @@ mod tests {
             .add_message(ContextMessage::system(
                 "You're expert at math, so you should resolve all user queries.",
             ))
-            .add_message(ContextMessage::user("what's 2 + 2 ?"))
+            .add_message(ContextMessage::user("what's 2 + 2 ?", vec![]))
             .add_message(ContextMessage::assistant(
                 "here is the system call.",
                 Some(vec![ToolCallFull {
