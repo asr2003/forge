@@ -5,8 +5,16 @@ use derive_setters::Setters;
 use serde::{Deserialize, Serialize};
 use tracing::debug;
 
-use super::{Attachment, ToolCallFull, ToolResult};
+use super::{ToolCallFull, ToolResult};
 use crate::{ToolChoice, ToolDefinition};
+
+#[derive(
+    Debug, schemars::JsonSchema, serde::Deserialize, serde::Serialize, Clone, PartialEq, Eq, Hash,
+)]
+pub enum Attachment {
+    Text { text: String, path: String },
+    Image(String),
+}
 
 /// Represents a message being sent to the LLM provider
 /// NOTE: ToolResults message are part of the larger Request object and not part

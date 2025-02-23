@@ -13,11 +13,11 @@ pub struct ChatRequest {
 }
 
 impl ChatRequest {
-    pub fn new(
-        content: impl ToString,
-        conversation_id: ConversationId,
-        files: HashSet<Attachment>,
-    ) -> Self {
-        Self { content: content.to_string(), conversation_id, files }
+    pub fn new(content: impl ToString, conversation_id: ConversationId) -> Self {
+        Self {
+            content: content.to_string(),
+            conversation_id,
+            files: Default::default(),
+        }
     }
 }

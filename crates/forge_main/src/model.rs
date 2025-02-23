@@ -73,8 +73,6 @@ pub enum Command {
     Models,
     /// Dumps the current conversation into a json file
     Dump,
-    /// Allows attaching one or more image files
-    Attach(Vec<PathBuf>),
 }
 
 impl Command {
@@ -114,37 +112,8 @@ impl Command {
             "/exit" => Command::Exit,
             "/models" => Command::Models,
             "/dump" => Command::Dump,
-            text if text.starts_with("/attach") => Command::parse_attach(text),
             text => Command::Message(text.to_string()),
         }
-    }
-
-    /// Parse attachment command and extract file paths.
-    ///
-    /// Supports auto-completion for:
-    /// - Directories
-    /// - Image files (common formats like jpg, png, gif, etc.)
-    ///
-    /// # Arguments
-    /// * `input` - Raw command input string starting with "/attach"
-    ///
-    /// # Returns
-    /// * `Command::Attach` variant containing a vector of paths
-    ///
-    ///
-    /// For shell completion, this function expects TAB completion to be handled
-    /// by the shell, which should complete:
-    /// - Directory paths (ending with /)
-    /// - Image files (with extensions .jpg, .jpeg, .png, .gif, .webp, etc.)
-    fn parse_attach(input: &str) -> Self {
-        // The actual parsing remains simple since completion is handled by the shell
-        let paths: Vec<PathBuf> = input
-            .split_whitespace()
-            .skip(1) // Skip the /attach command
-            .filter(|v| v.ends_with(""))
-            .map(PathBuf::from)
-            .collect();
-        Command::Attach(paths)
     }
 }
 

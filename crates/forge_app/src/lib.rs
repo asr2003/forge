@@ -1,4 +1,5 @@
 mod app;
+mod chat_request;
 mod conversation;
 mod prompt;
 mod provider;

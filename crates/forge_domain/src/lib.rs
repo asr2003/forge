@@ -1,5 +1,4 @@
 mod agent;
-mod attachments;
 mod chat_request;
 mod chat_response;
 mod context;
@@ -25,8 +24,9 @@ mod tool_result;
 mod tool_usage;
 mod workflow;
 
+use std::collections::HashSet;
+
 pub use agent::*;
-pub use attachments::*;
 pub use chat_request::*;
 pub use chat_response::*;
 pub use context::*;
@@ -99,6 +99,12 @@ pub trait PromptService: Send + Sync {
     ) -> anyhow::Result<String>;
 }
 
+#[async_trait::async_trait]
+pub trait ChatRequestService {
+    async fn extract_files(&self, content: String)
+        -> anyhow::Result<(String, HashSet<Attachment>)>;
+}
+
 /// Core app trait providing access to services and repositories.
 /// This trait follows clean architecture principles for dependency management
 /// and service/repository composition.
@@ -107,9 +113,11 @@ pub trait App: Send + Sync + 'static {
     type ProviderService: ProviderService;
     type ConversationService: ConversationService;
     type PromptService: PromptService;
+    type ChatRequestService: ChatRequestService;
 
     fn tool_service(&self) -> &Self::ToolService;
     fn provider_service(&self) -> &Self::ProviderService;
     fn conversation_service(&self) -> &Self::ConversationService;
     fn prompt_service(&self) -> &Self::PromptService;
+    fn chat_request_service(&self) -> &Self::ChatRequestService;
 }

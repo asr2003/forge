@@ -1,11 +1,8 @@
-use std::collections::HashSet;
 use std::sync::Arc;
 
 use anyhow::Result;
 use colored::Colorize;
-use forge_api::{
-    AgentMessage, Attachment, ChatRequest, ChatResponse, ConversationId, Model, Usage, API,
-};
+use forge_api::{AgentMessage, ChatRequest, ChatResponse, ConversationId, Model, Usage, API};
 use forge_display::TitleFormat;
 use forge_tracker::EventKind;
 use lazy_static::lazy_static;
@@ -67,15 +64,12 @@ impl<F: API> UI<F> {
         // Handle direct prompt if provided
         let prompt = self.cli.prompt.clone();
         if let Some(prompt) = prompt {
-            // TODO: add --attach arg through which users can pass files
-            self.chat(prompt, HashSet::new()).await?;
+            self.chat(prompt).await?;
             return Ok(());
         }
 
         // Display the banner in dimmed colors since we're in interactive mode
         banner::display()?;
-
-        let mut attachments = HashSet::new();
 
         // Get initial input from file or prompt
         let mut input = match &self.cli.command {
@@ -109,8 +103,7 @@ impl<F: API> UI<F> {
                     continue;
                 }
                 Command::Message(ref content) => {
-                    let chat_result = self.chat(content.clone(), attachments).await;
-                    attachments = HashSet::new();
+                    let chat_result = self.chat(content.clone()).await;
                     if let Err(err) = chat_result {
                         CONSOLE.writeln(
                             TitleFormat::failed(format!("{:?}", err))
@@ -137,37 +130,13 @@ impl<F: API> UI<F> {
 
                     input = self.console.prompt(None).await?;
                 }
-                Command::Attach(paths) => {
-                    if paths.is_empty() {
-                        CONSOLE.writeln(
-                            "Error: No file paths provided. Usage: /attach <file1> [file2 ...]",
-                        )?;
-                    } else {
-                        // Validate files exist and are images
-                        for path in &paths {
-                            if !path.exists() {
-                                CONSOLE.writeln(format!(
-                                    "Error: File not found: {}",
-                                    path.display()
-                                ))?;
-                            }
-                        }
-                        // TODO: somehow show the attachments from UI
-                        let new_attachments = forge_attachments::prepare_attachments(paths).await;
-                        attachments.extend(new_attachments);
-                    }
-                    input = self.console.prompt(Some((&self.state).into())).await?;
-                }
             }
         }
 
         Ok(())
     }
 
-    async fn chat(&mut self, content: String, mut files: HashSet<Attachment>) -> Result<()> {
-        let (content, attachments) = forge_attachments::split_image_paths(content).await;
-        files.extend(attachments);
-
+    async fn chat(&mut self, content: String) -> Result<()> {
         let conversation_id = match self.state.conversation_id {
             Some(ref id) => id.clone(),
             None => {
@@ -181,7 +150,7 @@ impl<F: API> UI<F> {
             }
         };
 
-        let chat = ChatRequest { content: content.clone(), conversation_id, files };
+        let chat = ChatRequest::new(content.clone(), conversation_id);
 
         tokio::spawn(TRACKER.dispatch(EventKind::Prompt(content)));
         match self.api.chat(chat).await {
