@@ -81,9 +81,6 @@ impl Walker {
 }
 
 impl Walker {
-    pub fn get_cwd(&self) -> PathBuf {
-        self.cwd.clone()
-    }
     pub async fn get(&self) -> Result<Vec<File>> {
         let walker = self.clone();
         spawn_blocking(move || walker.get_blocking())
