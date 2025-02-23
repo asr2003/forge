@@ -451,4 +451,72 @@ mod tests {
             "\"middle-out\""
         );
     }
+
+    #[test]
+    fn test_message_with_single_image() {
+        let mut attachments = HashSet::new();
+        attachments.insert(Attachment::Image(
+            "https://example.com/image.jpg".to_string(),
+        ));
+
+        let message = ContextMessage::ContentMessage(ContentMessage {
+            role: Role::User,
+            content: "Check out this image".to_string(),
+            attachments,
+            tool_calls: None,
+        });
+
+        let router_message = OpenRouterMessage::from(message);
+        assert_json_snapshot!(router_message);
+    }
+
+    #[test]
+    fn test_message_with_multiple_images() {
+        let mut attachments = HashSet::new();
+        attachments.insert(Attachment::Image(
+            "https://example.com/image1.jpg".to_string(),
+        ));
+        attachments.insert(Attachment::Image(
+            "https://example.com/image2.jpg".to_string(),
+        ));
+
+        let message = ContextMessage::ContentMessage(ContentMessage {
+            role: Role::User,
+            content: "Here are multiple images".to_string(),
+            attachments,
+            tool_calls: None,
+        });
+
+        let router_message = OpenRouterMessage::from(message);
+        assert_json_snapshot!(router_message);
+    }
+
+    #[test]
+    fn test_image_url_with_detail() {
+        let image_url = ImageUrl {
+            url: "https://example.com/high-res.jpg".to_string(),
+            detail: None,
+        };
+
+        let content_part = ContentPart::ImageUrl { image_url };
+        assert_json_snapshot!(content_part);
+    }
+
+    #[test]
+    fn test_message_mixed_content() {
+        let mut attachments = HashSet::new();
+        attachments.insert(Attachment::Image(
+            "https://example.com/diagram.png".to_string(),
+        ));
+
+        let message = ContextMessage::ContentMessage(ContentMessage {
+            role: Role::Assistant,
+            content: "Here's the architectural diagram you requested:\nThe diagram shows the main components...".to_string(),
+            attachments,
+            tool_calls: None,
+        });
+
+        let router_message = OpenRouterMessage::from(message);
+        assert_json_snapshot!(router_message);
+    }
 }
