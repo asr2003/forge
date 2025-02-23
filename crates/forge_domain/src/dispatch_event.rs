@@ -1,9 +1,10 @@
+use derive_setters::Setters;
 use schemars::{schema_for, JsonSchema};
 use serde::{Deserialize, Serialize};
 
 use crate::{NamedTool, ToolCallFull, ToolDefinition, ToolName};
 
-#[derive(Debug, JsonSchema, Deserialize, Serialize, Clone)]
+#[derive(Debug, JsonSchema, Deserialize, Serialize, Clone, Setters)]
 pub struct DispatchEvent {
     pub name: String,
     pub value: String,

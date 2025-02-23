@@ -319,8 +319,7 @@ impl<A: App> Orchestrator<A> {
             .chat_request_service()
             .extract_files(event.value.clone())
             .await?;
-        let mut event = event.clone();
-        event.value = content;
+        let event = event.clone().value(content);
 
         let content = self
             .app
