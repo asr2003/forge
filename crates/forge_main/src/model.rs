@@ -89,7 +89,6 @@ impl Command {
             "/exit".to_string(),
             "/models".to_string(),
             "/dump".to_string(),
-            "/attach".to_string(),
         ]
     }
 
