@@ -287,8 +287,6 @@ impl From<ContextMessage> for OpenRouterMessage {
                     MessageContent::Parts(vec)
                 };
 
-                // println!("content: {}", serde_json::to_string_pretty(&content).unwrap());
-
                 OpenRouterMessage {
                     role: chat_message.role.into(),
                     content: Some(content),
