@@ -11,9 +11,18 @@ use crate::{ToolChoice, ToolDefinition};
 #[derive(
     Debug, schemars::JsonSchema, serde::Deserialize, serde::Serialize, Clone, PartialEq, Eq, Hash,
 )]
-pub enum Attachment {
-    Text { text: String, path: String },
-    Image(String),
+pub struct Attachment {
+    pub content: String,
+    pub path: String,
+    pub content_type: ContentType,
+}
+
+#[derive(
+    Debug, schemars::JsonSchema, serde::Deserialize, serde::Serialize, Clone, PartialEq, Eq, Hash,
+)]
+pub enum ContentType {
+    ImageURL,
+    Text,
 }
 
 /// Represents a message being sent to the LLM provider

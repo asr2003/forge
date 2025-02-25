@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
 use base64::Engine;
-use forge_domain::{Attachment, AttachmentService};
+use forge_domain::{Attachment, AttachmentService, ContentType};
 // TODO: bring pdf support, pdf is just a collection of images.
 
 pub struct ForgeChatRequest;
@@ -44,9 +44,13 @@ async fn populate_attachments(v: PathBuf) -> anyhow::Result<Attachment> {
             extension,
             base64::engine::general_purpose::STANDARD.encode(read)
         );
-        Ok(Attachment::Image(b64))
+        Ok(Attachment { content: b64, path, content_type: ContentType::ImageURL })
     } else {
-        Ok(Attachment::Text { text: String::from_utf8(read)?, path })
+        Ok(Attachment {
+            content: String::from_utf8(read)?,
+            path,
+            content_type: ContentType::Text,
+        })
     }
 }
 
@@ -65,8 +69,11 @@ async fn prepare_attachments<T: AsRef<Path>>(paths: Vec<T>) -> HashSet<Attachmen
 
 fn prepare_message(mut message: String, attachments: &mut HashSet<Attachment>) -> String {
     for attachment in attachments.clone() {
-        if let Attachment::Text { text, path } = &attachment {
-            let xml = format!("<file path=\"{}\">{}</file>", path, text);
+        if let ContentType::Text = &attachment.content_type {
+            let xml = format!(
+                "<file path=\"{}\">{}</file>",
+                attachment.path, attachment.content
+            );
             message.push_str(&xml);
 
             attachments.remove(&attachment);

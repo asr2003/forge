@@ -312,6 +312,13 @@ impl<A: App> Orchestrator<A> {
             }
         };
 
+        let (content, attachments) = self
+            .app
+            .attachment_service()
+            .attachments(event.value.clone())
+            .await?;
+        let event = event.clone().value(content);
+
         let mut user_context = UserContext::new(event.clone());
 
         if agent.suggestions {
@@ -319,13 +326,6 @@ impl<A: App> Orchestrator<A> {
             debug!(suggestions = ?suggestions, "Suggestions received");
             user_context = user_context.suggestions(suggestions);
         }
-
-        let (content, attachments) = self
-            .app
-            .attachment_service()
-            .attachments(event.value.clone())
-            .await?;
-        let event = event.clone().value(content);
 
         let content = self
             .app

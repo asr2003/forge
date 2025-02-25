@@ -1,7 +1,7 @@
 use derive_more::derive::Display;
 use derive_setters::Setters;
 use forge_domain::{
-    Attachment, Context, ContextMessage, ModelId, Role, ToolCallFull, ToolCallId, ToolDefinition,
+    ContentType, Context, ContextMessage, ModelId, Role, ToolCallFull, ToolCallId, ToolDefinition,
     ToolName,
 };
 use serde::{Deserialize, Serialize};
@@ -273,8 +273,8 @@ impl From<ContextMessage> for OpenRouterMessage {
                             .attachments
                             .into_iter()
                             .filter_map(|v| {
-                                if let Attachment::Image(img) = v {
-                                    Some(img)
+                                if let ContentType::ImageURL = v.content_type {
+                                    Some(v.content)
                                 } else {
                                     None
                                 }
@@ -335,7 +335,8 @@ mod tests {
     use std::collections::HashSet;
 
     use forge_domain::{
-        ContentMessage, ContextMessage, Role, ToolCallFull, ToolCallId, ToolName, ToolResult,
+        Attachment, ContentMessage, ContextMessage, Role, ToolCallFull, ToolCallId, ToolName,
+        ToolResult,
     };
     use insta::assert_json_snapshot;
     use serde_json::json;
@@ -453,9 +454,11 @@ mod tests {
     #[test]
     fn test_message_with_single_image() {
         let mut attachments = HashSet::new();
-        attachments.insert(Attachment::Image(
-            "https://example.com/image.jpg".to_string(),
-        ));
+        attachments.insert(Attachment {
+            content: "https://example.com/image.jpg".to_string(),
+            path: "fake".to_string(),
+            content_type: ContentType::ImageURL,
+        });
 
         let message = ContextMessage::ContentMessage(ContentMessage {
             role: Role::User,
@@ -471,12 +474,16 @@ mod tests {
     #[test]
     fn test_message_with_multiple_images() {
         let mut attachments = HashSet::new();
-        attachments.insert(Attachment::Image(
-            "https://example.com/image1.jpg".to_string(),
-        ));
-        attachments.insert(Attachment::Image(
-            "https://example.com/image2.jpg".to_string(),
-        ));
+        attachments.insert(Attachment {
+            content: "https://example.com/image1.jpg".to_string(),
+            path: "fake".to_string(),
+            content_type: ContentType::ImageURL,
+        });
+        attachments.insert(Attachment {
+            content: "https://example.com/image2.jpg".to_string(),
+            path: "fake".to_string(),
+            content_type: ContentType::ImageURL,
+        });
 
         let message = ContextMessage::ContentMessage(ContentMessage {
             role: Role::User,
@@ -503,9 +510,11 @@ mod tests {
     #[test]
     fn test_message_mixed_content() {
         let mut attachments = HashSet::new();
-        attachments.insert(Attachment::Image(
-            "https://example.com/diagram.png".to_string(),
-        ));
+        attachments.insert(Attachment {
+            content: "https://example.com/diagram.png".to_string(),
+            path: "fake".to_string(),
+            content_type: ContentType::ImageURL,
+        });
 
         let message = ContextMessage::ContentMessage(ContentMessage {
             role: Role::Assistant,
