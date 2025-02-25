@@ -10,10 +10,7 @@ pub struct ForgeChatRequest;
 
 #[async_trait::async_trait]
 impl AttachmentService for ForgeChatRequest {
-    async fn attachments(
-        &self,
-        content: String,
-    ) -> anyhow::Result<(String, HashSet<Attachment>)> {
+    async fn attachments(&self, content: String) -> anyhow::Result<(String, HashSet<Attachment>)> {
         Ok(handle_binary_attachments(content).await)
     }
 }
