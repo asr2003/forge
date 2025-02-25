@@ -7,13 +7,14 @@ mod dispatch_event;
 mod env;
 mod error;
 mod file;
-mod knowledge;
 mod message;
 mod model;
 mod orch;
-mod prompt;
+mod point;
 mod provider;
+mod suggestion;
 mod summarize;
+mod template;
 mod tool;
 mod tool_call;
 mod tool_call_parser;
@@ -35,14 +36,15 @@ pub use dispatch_event::*;
 pub use env::*;
 pub use error::*;
 pub use file::*;
-pub use knowledge::*;
 pub use message::*;
 pub use model::*;
 pub use orch::*;
-pub use prompt::*;
+pub use point::*;
 pub use provider::*;
 use serde::Serialize;
+pub use suggestion::*;
 pub use summarize::*;
+pub use template::*;
 pub use tool::*;
 pub use tool_call::*;
 pub use tool_call_parser::*;
@@ -91,10 +93,10 @@ pub trait ConversationService: Send + Sync {
 }
 
 #[async_trait::async_trait]
-pub trait PromptService: Send + Sync {
+pub trait TemplateService: Send + Sync {
     async fn render<T: Serialize + Send + Sync>(
         &self,
-        prompt: &Prompt<T>,
+        prompt: &Template<T>,
         value: &T,
     ) -> anyhow::Result<String>;
 }
@@ -105,6 +107,12 @@ pub trait ChatRequestService {
         -> anyhow::Result<(String, HashSet<Attachment>)>;
 }
 
+#[async_trait::async_trait]
+pub trait SuggestionService: Send + Sync + 'static {
+    async fn search(&self, request: &str) -> anyhow::Result<Vec<Suggestion>>;
+    async fn insert(&self, suggestion: Suggestion) -> anyhow::Result<()>;
+}
+
 /// Core app trait providing access to services and repositories.
 /// This trait follows clean architecture principles for dependency management
 /// and service/repository composition.
@@ -112,7 +120,8 @@ pub trait App: Send + Sync + 'static {
     type ToolService: ToolService;
     type ProviderService: ProviderService;
     type ConversationService: ConversationService;
-    type PromptService: PromptService;
+    type PromptService: TemplateService;
+    type SuggestionService: SuggestionService;
     type ChatRequestService: ChatRequestService;
 
     fn tool_service(&self) -> &Self::ToolService;
@@ -120,4 +129,5 @@ pub trait App: Send + Sync + 'static {
     fn conversation_service(&self) -> &Self::ConversationService;
     fn prompt_service(&self) -> &Self::PromptService;
     fn chat_request_service(&self) -> &Self::ChatRequestService;
+    fn suggestion_service(&self) -> &Self::SuggestionService;
 }

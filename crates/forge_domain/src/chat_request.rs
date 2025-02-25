@@ -1,10 +1,11 @@
 use std::collections::HashSet;
 
 use derive_setters::Setters;
+use serde::{Deserialize, Serialize};
 
 use crate::{Attachment, ConversationId};
 
-#[derive(Debug, serde::Deserialize, Clone, Setters)]
+#[derive(Debug, Serialize, Deserialize, Clone, Setters)]
 #[setters(into, strip_option)]
 pub struct ChatRequest {
     pub content: String,
