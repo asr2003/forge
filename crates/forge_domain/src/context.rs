@@ -33,14 +33,14 @@ pub enum ContentType {
 pub enum ContextMessage {
     ContentMessage(ContentMessage),
     ToolMessage(ToolResult),
+    Attachments(HashSet<Attachment>),
 }
 
 impl ContextMessage {
-    pub fn user(content: impl ToString, attachments: HashSet<Attachment>) -> Self {
+    pub fn user(content: impl ToString) -> Self {
         ContentMessage {
             role: Role::User,
             content: content.to_string(),
-            attachments,
             tool_calls: None,
         }
         .into()
@@ -50,7 +50,6 @@ impl ContextMessage {
         ContentMessage {
             role: Role::System,
             content: content.to_string(),
-            attachments: HashSet::new(),
             tool_calls: None,
         }
         .into()
@@ -62,7 +61,6 @@ impl ContextMessage {
         ContentMessage {
             role: Role::Assistant,
             content: content.to_string(),
-            attachments: HashSet::new(),
             tool_calls,
         }
         .into()
@@ -76,6 +74,7 @@ impl ContextMessage {
         match self {
             ContextMessage::ContentMessage(message) => message.role == role,
             ContextMessage::ToolMessage(_) => false,
+            ContextMessage::Attachments(_) => Role::User == role,
         }
     }
 }
@@ -86,7 +85,6 @@ impl ContextMessage {
 pub struct ContentMessage {
     pub role: Role,
     pub content: String,
-    pub attachments: HashSet<Attachment>,
     pub tool_calls: Option<Vec<ToolCallFull>>,
 }
 
@@ -95,7 +93,6 @@ impl ContentMessage {
         Self {
             role: Role::Assistant,
             content: content.to_string(),
-            attachments: HashSet::new(),
             tool_calls: None,
         }
     }
@@ -120,6 +117,10 @@ pub struct Context {
 }
 
 impl Context {
+    pub fn add_attachments(mut self, attachment: HashSet<Attachment>) -> Self {
+        self.messages.push(ContextMessage::Attachments(attachment));
+        self
+    }
     pub fn add_tool(mut self, tool: impl Into<ToolDefinition>) -> Self {
         let tool: ToolDefinition = tool.into();
         self.tools.push(tool);
@@ -196,6 +197,9 @@ impl Context {
                     ));
                     lines.push_str("</message>");
                 }
+                ContextMessage::Attachments(_) => {
+                    todo!()
+                }
             }
         }
 
@@ -234,7 +238,7 @@ mod tests {
     #[test]
     fn test_insert_system_message() {
         let request = Context::default()
-            .add_message(ContextMessage::user("Do something", HashSet::new()))
+            .add_message(ContextMessage::user("Do something"))
             .set_first_system_message("A system message");
 
         assert_eq!(

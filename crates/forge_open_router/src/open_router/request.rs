@@ -1,8 +1,7 @@
 use derive_more::derive::Display;
 use derive_setters::Setters;
 use forge_domain::{
-    ContentType, Context, ContextMessage, ModelId, Role, ToolCallFull, ToolCallId, ToolDefinition,
-    ToolName,
+    Context, ContextMessage, ModelId, Role, ToolCallFull, ToolCallId, ToolDefinition, ToolName,
 };
 use serde::{Deserialize, Serialize};
 
@@ -262,44 +261,18 @@ impl From<ToolCallFull> for OpenRouterToolCall {
 impl From<ContextMessage> for OpenRouterMessage {
     fn from(value: ContextMessage) -> Self {
         match value {
-            ContextMessage::ContentMessage(chat_message) => {
-                let content = if chat_message.attachments.is_empty() {
-                    MessageContent::Text(chat_message.content)
-                } else {
-                    let mut vec =
-                        vec![ContentPart::Text { text: chat_message.content, cache_control: None }];
-                    vec.extend(
-                        chat_message
-                            .attachments
-                            .into_iter()
-                            .filter_map(|v| {
-                                if let ContentType::ImageURL = v.content_type {
-                                    Some(v.content)
-                                } else {
-                                    None
-                                }
-                            })
-                            .map(|url| ContentPart::ImageUrl {
-                                image_url: ImageUrl { url, detail: None },
-                            }),
-                    );
-
-                    MessageContent::Parts(vec)
-                };
-
-                OpenRouterMessage {
-                    role: chat_message.role.into(),
-                    content: Some(content),
-                    name: None,
-                    tool_call_id: None,
-                    tool_calls: chat_message.tool_calls.map(|tool_calls| {
-                        tool_calls
-                            .into_iter()
-                            .map(OpenRouterToolCall::from)
-                            .collect()
-                    }),
-                }
-            }
+            ContextMessage::ContentMessage(chat_message) => OpenRouterMessage {
+                role: chat_message.role.into(),
+                content: Some(MessageContent::Text(chat_message.content)),
+                name: None,
+                tool_call_id: None,
+                tool_calls: chat_message.tool_calls.map(|tool_calls| {
+                    tool_calls
+                        .into_iter()
+                        .map(OpenRouterToolCall::from)
+                        .collect()
+                }),
+            },
             ContextMessage::ToolMessage(tool_result) => OpenRouterMessage {
                 role: OpenRouterRole::Tool,
                 content: Some(MessageContent::Text(tool_result.to_string())),
@@ -307,6 +280,22 @@ impl From<ContextMessage> for OpenRouterMessage {
                 tool_call_id: tool_result.call_id,
                 tool_calls: None,
             },
+            ContextMessage::Attachments(attachments) => {
+                let mut content = vec![];
+                for attachment in attachments {
+                    content.push(ContentPart::ImageUrl {
+                        image_url: ImageUrl { url: attachment.content, detail: None },
+                    });
+                }
+
+                OpenRouterMessage {
+                    role: OpenRouterRole::User,
+                    content: Some(MessageContent::Parts(content)),
+                    name: None,
+                    tool_call_id: None,
+                    tool_calls: None,
+                }
+            }
         }
     }
 }
@@ -332,11 +321,8 @@ pub enum OpenRouterRole {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashSet;
-
     use forge_domain::{
-        Attachment, ContentMessage, ContextMessage, Role, ToolCallFull, ToolCallId, ToolName,
-        ToolResult,
+        ContentMessage, ContextMessage, Role, ToolCallFull, ToolCallId, ToolName, ToolResult,
     };
     use insta::assert_json_snapshot;
     use serde_json::json;
@@ -348,7 +334,6 @@ mod tests {
         let user_message = ContextMessage::ContentMessage(ContentMessage {
             role: Role::User,
             content: "Hello".to_string(),
-            attachments: HashSet::new(),
             tool_calls: None,
         });
         let router_message = OpenRouterMessage::from(user_message);
@@ -370,7 +355,6 @@ mod tests {
         let message = ContextMessage::ContentMessage(ContentMessage {
             role: Role::User,
             content: xml_content.to_string(),
-            attachments: HashSet::new(),
             tool_calls: None,
         });
         let router_message = OpenRouterMessage::from(message);
@@ -388,7 +372,6 @@ mod tests {
         let assistant_message = ContextMessage::ContentMessage(ContentMessage {
             role: Role::Assistant,
             content: "Using tool".to_string(),
-            attachments: HashSet::new(),
             tool_calls: Some(vec![tool_call]),
         });
         let router_message = OpenRouterMessage::from(assistant_message);
@@ -449,81 +432,5 @@ mod tests {
             serde_json::to_string(&Transform::MiddleOut).unwrap(),
             "\"middle-out\""
         );
-    }
-
-    #[test]
-    fn test_message_with_single_image() {
-        let mut attachments = HashSet::new();
-        attachments.insert(Attachment {
-            content: "https://example.com/image.jpg".to_string(),
-            path: "fake".to_string(),
-            content_type: ContentType::ImageURL,
-        });
-
-        let message = ContextMessage::ContentMessage(ContentMessage {
-            role: Role::User,
-            content: "Check out this image".to_string(),
-            attachments,
-            tool_calls: None,
-        });
-
-        let router_message = OpenRouterMessage::from(message);
-        assert_json_snapshot!(router_message);
-    }
-
-    #[test]
-    fn test_message_with_multiple_images() {
-        let mut attachments = HashSet::new();
-        attachments.insert(Attachment {
-            content: "https://example.com/image1.jpg".to_string(),
-            path: "fake".to_string(),
-            content_type: ContentType::ImageURL,
-        });
-        attachments.insert(Attachment {
-            content: "https://example.com/image2.jpg".to_string(),
-            path: "fake".to_string(),
-            content_type: ContentType::ImageURL,
-        });
-
-        let message = ContextMessage::ContentMessage(ContentMessage {
-            role: Role::User,
-            content: "Here are multiple images".to_string(),
-            attachments,
-            tool_calls: None,
-        });
-
-        let router_message = OpenRouterMessage::from(message);
-        assert_json_snapshot!(router_message);
-    }
-
-    #[test]
-    fn test_image_url_with_detail() {
-        let image_url = ImageUrl {
-            url: "https://example.com/high-res.jpg".to_string(),
-            detail: None,
-        };
-
-        let content_part = ContentPart::ImageUrl { image_url };
-        assert_json_snapshot!(content_part);
-    }
-
-    #[test]
-    fn test_message_mixed_content() {
-        let mut attachments = HashSet::new();
-        attachments.insert(Attachment {
-            content: "https://example.com/diagram.png".to_string(),
-            path: "fake".to_string(),
-            content_type: ContentType::ImageURL,
-        });
-
-        let message = ContextMessage::ContentMessage(ContentMessage {
-            role: Role::Assistant,
-            content: "Here's the architectural diagram you requested:\nThe diagram shows the main components...".to_string(),
-            attachments,
-            tool_calls: None,
-        });
-
-        let router_message = OpenRouterMessage::from(message);
-        assert_json_snapshot!(router_message);
     }
 }

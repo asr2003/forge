@@ -333,7 +333,9 @@ impl<A: App> Orchestrator<A> {
             .render(&agent.user_prompt, &user_context)
             .await?;
 
-        context = context.add_message(ContextMessage::user(content, attachments));
+        context = context
+            .add_message(ContextMessage::user(content))
+            .add_attachments(attachments);
 
         loop {
             context = self.execute_transform(&agent.transforms, context).await?;
