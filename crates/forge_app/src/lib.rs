@@ -1,5 +1,5 @@
 mod app;
-mod chat_request;
+mod attachment;
 mod conversation;
 mod provider;
 mod suggestion;

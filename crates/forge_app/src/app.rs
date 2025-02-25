@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use forge_domain::App;
 
-use crate::chat_request::ForgeChatRequest;
+use crate::attachment::ForgeChatRequest;
 use crate::conversation::ForgeConversationService;
 use crate::provider::ForgeProviderService;
 use crate::suggestion::ForgeSuggestionService;
