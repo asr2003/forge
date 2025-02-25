@@ -3,14 +3,14 @@ use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
 use base64::Engine;
-use forge_domain::{Attachment, ChatRequestService};
+use forge_domain::{Attachment, AttachmentService};
 // TODO: bring pdf support, pdf is just a collection of images.
 
 pub struct ForgeChatRequest;
 
 #[async_trait::async_trait]
-impl ChatRequestService for ForgeChatRequest {
-    async fn extract_files(
+impl AttachmentService for ForgeChatRequest {
+    async fn attachments(
         &self,
         content: String,
     ) -> anyhow::Result<(String, HashSet<Attachment>)> {

@@ -22,7 +22,7 @@ pub struct ForgeApp<F> {
     provider_service: ForgeProviderService,
     conversation_service: ForgeConversationService,
     prompt_service: ForgeTemplateService,
-    chat_request: ForgeChatRequest,
+    attachment_service: ForgeChatRequest,
     suggestion_service: Arc<ForgeSuggestionService<F>>,
 }
 
@@ -35,7 +35,7 @@ impl<F: Infrastructure> ForgeApp<F> {
             provider_service: ForgeProviderService::new(infra.clone()),
             conversation_service: ForgeConversationService::new(),
             prompt_service: ForgeTemplateService::new(),
-            chat_request: ForgeChatRequest,
+            attachment_service: ForgeChatRequest,
             suggestion_service,
         }
     }
@@ -46,7 +46,7 @@ impl<F: Infrastructure> App for ForgeApp<F> {
     type ProviderService = ForgeProviderService;
     type ConversationService = ForgeConversationService;
     type PromptService = ForgeTemplateService;
-    type ChatRequestService = ForgeChatRequest;
+    type AttachmentService = ForgeChatRequest;
     type SuggestionService = ForgeSuggestionService<F>;
 
     fn tool_service(&self) -> &Self::ToolService {
@@ -69,8 +69,8 @@ impl<F: Infrastructure> App for ForgeApp<F> {
         &self.prompt_service
     }
 
-    fn chat_request_service(&self) -> &Self::ChatRequestService {
-        &self.chat_request
+    fn attachment_service(&self) -> &Self::AttachmentService {
+        &self.attachment_service
     }
 }
 

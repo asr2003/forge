@@ -102,9 +102,8 @@ pub trait TemplateService: Send + Sync {
 }
 
 #[async_trait::async_trait]
-pub trait ChatRequestService {
-    async fn extract_files(&self, content: String)
-        -> anyhow::Result<(String, HashSet<Attachment>)>;
+pub trait AttachmentService {
+    async fn attachments(&self, content: String) -> anyhow::Result<(String, HashSet<Attachment>)>;
 }
 
 #[async_trait::async_trait]
@@ -122,12 +121,12 @@ pub trait App: Send + Sync + 'static {
     type ConversationService: ConversationService;
     type PromptService: TemplateService;
     type SuggestionService: SuggestionService;
-    type ChatRequestService: ChatRequestService;
+    type AttachmentService: AttachmentService;
 
     fn tool_service(&self) -> &Self::ToolService;
     fn provider_service(&self) -> &Self::ProviderService;
     fn conversation_service(&self) -> &Self::ConversationService;
     fn prompt_service(&self) -> &Self::PromptService;
-    fn chat_request_service(&self) -> &Self::ChatRequestService;
+    fn attachment_service(&self) -> &Self::AttachmentService;
     fn suggestion_service(&self) -> &Self::SuggestionService;
 }
