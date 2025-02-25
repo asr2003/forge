@@ -24,8 +24,6 @@ impl Transformer for SetCache {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashSet;
-
     use forge_domain::{ContentMessage, Context, ContextMessage, ModelId, Role};
 
     use super::*;
@@ -37,7 +35,6 @@ mod tests {
             messages: vec![ContextMessage::ContentMessage(ContentMessage {
                 role: Role::User,
                 content: "test message".to_string(),
-                attachments: HashSet::new(),
                 tool_calls: None,
             })],
             tools: vec![],
