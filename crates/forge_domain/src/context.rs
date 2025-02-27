@@ -229,8 +229,12 @@ impl Context {
                     ));
                     lines.push_str("</message>");
                 }
-                ContextMessage::Attachments(_) => {
-                    todo!()
+                ContextMessage::Attachments(attachments) => {
+                    attachments.iter().for_each(|attachment| {
+                        lines.push_str(
+                            format!("<file_attachment path=\"{}\">", attachment.path).as_str(),
+                        );
+                    })
                 }
             }
         }
