@@ -18,10 +18,42 @@ pub struct Attachment {
 }
 
 #[derive(
+    Debug,
+    strum_macros::EnumIter,
+    strum_macros::Display,
+    strum_macros::EnumString,
+    serde::Serialize,
+    serde::Deserialize,
+    schemars::JsonSchema,
+    Clone,
+    PartialEq,
+    Eq,
+    Hash,
+)]
+pub enum ImageType {
+    #[strum(
+        to_string = "jpeg",
+        serialize = "jpeg",
+        serialize = "jpg",
+        ascii_case_insensitive
+    )]
+    Jpeg,
+    #[strum(to_string = "png", ascii_case_insensitive)]
+    Png,
+    #[strum(
+        to_string = "webp",
+        serialize = "gif",
+        serialize = "webp",
+        ascii_case_insensitive
+    )]
+    Webp,
+}
+
+#[derive(
     Debug, schemars::JsonSchema, serde::Deserialize, serde::Serialize, Clone, PartialEq, Eq, Hash,
 )]
 pub enum ContentType {
-    ImageURL,
+    Image(ImageType),
     Text,
 }
 

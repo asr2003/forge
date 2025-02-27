@@ -1,5 +1,5 @@
 use derive_setters::Setters;
-use forge_domain::ContextMessage;
+use forge_domain::{Attachment, ContentType, ContextMessage};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Default, Setters)]
@@ -120,17 +120,51 @@ impl TryFrom<ContextMessage> for Message {
             ContextMessage::ToolMessage(tool_result) => {
                 Message { role: Role::User, content: vec![tool_result.try_into()?] }
             }
-            ContextMessage::Attachments(_attachments) => {
-                // Needs review
-                todo!()
+            ContextMessage::Attachments(attachments) => {
+                let content = attachments
+                    .into_iter()
+                    .map(Content::try_from)
+                    .filter_map(|result| result.ok())
+                    .collect::<Vec<_>>();
+
+                Message { content, role: Role::User }
             }
         })
     }
 }
 
+impl TryFrom<Attachment> for Content {
+    type Error = ();
+
+    fn try_from(value: Attachment) -> Result<Self, Self::Error> {
+        if let ContentType::Image(ext) = value.content_type {
+            Ok(Content::Image {
+                source: ImageSource {
+                    type_: "base64".to_string(),
+                    media_type: format!("image/{}", ext),
+                    data: value.content,
+                },
+            })
+        } else {
+            Err(())
+        }
+    }
+}
+
+#[derive(Serialize)]
+struct ImageSource {
+    #[serde(rename = "type")]
+    type_: String,
+    media_type: String,
+    data: String,
+}
+
 #[derive(Serialize)]
 #[serde(rename_all = "snake_case", tag = "type")]
 enum Content {
+    Image {
+        source: ImageSource,
+    },
     Text {
         text: String,
         #[serde(skip_serializing_if = "Option::is_none")]

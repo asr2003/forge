@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
 use base64::Engine;
-use forge_domain::{Attachment, AttachmentService, ContentType};
+use forge_domain::{Attachment, AttachmentService, ContentType, ImageType};
 // TODO: bring pdf support, pdf is just a collection of images.
 
 pub struct ForgeChatRequest;
@@ -15,36 +15,16 @@ impl AttachmentService for ForgeChatRequest {
     }
 }
 
-#[derive(Debug, strum_macros::EnumIter, strum_macros::Display, strum_macros::EnumString)]
-pub enum ImageTypes {
-    #[strum(
-        to_string = "jpeg",
-        serialize = "jpeg",
-        serialize = "jpg",
-        ascii_case_insensitive
-    )]
-    Jpeg,
-    #[strum(to_string = "png", ascii_case_insensitive)]
-    Png,
-    #[strum(
-        to_string = "webp",
-        serialize = "gif",
-        serialize = "webp",
-        ascii_case_insensitive
-    )]
-    Webp,
-}
 async fn populate_attachments(v: PathBuf) -> anyhow::Result<Attachment> {
     let path = v.to_string_lossy().to_string();
     let ext = v.extension().map(|v| v.to_string_lossy().to_string());
     let read = tokio::fs::read(v).await?;
-    if let Some(extension) = ext.as_ref().and_then(|v| ImageTypes::from_str(v).ok()) {
-        let b64 = format!(
-            "data:image/{};base64,{}",
-            extension,
-            base64::engine::general_purpose::STANDARD.encode(read)
-        );
-        Ok(Attachment { content: b64, path, content_type: ContentType::ImageURL })
+    if let Some(extension) = ext.as_ref().and_then(|v| ImageType::from_str(v).ok()) {
+        Ok(Attachment {
+            content: base64::engine::general_purpose::STANDARD.encode(read),
+            path,
+            content_type: ContentType::Image(extension),
+        })
     } else {
         Ok(Attachment {
             content: String::from_utf8(read)?,
