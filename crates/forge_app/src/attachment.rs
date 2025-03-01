@@ -18,7 +18,7 @@ impl<F: Infrastructure> ForgeChatRequest<F> {
         Self { infra }
     }
 
-    async fn prepare_attachments<T: AsRef<Path>>(&self, paths: Vec<T>) -> HashSet<Attachment> {
+    async fn prepare_attachments<T: AsRef<Path>>(&self, paths: HashSet<T>) -> HashSet<Attachment> {
         futures::future::join_all(
             paths
                 .into_iter()
@@ -69,12 +69,7 @@ impl<F: Infrastructure> ForgeChatRequest<F> {
 #[async_trait::async_trait]
 impl<F: Infrastructure> AttachmentService for ForgeChatRequest<F> {
     async fn attachments(&self, chat: String) -> anyhow::Result<(String, HashSet<Attachment>)> {
-        let words = chat
-            .split(" ")
-            .filter_map(|v| v.strip_prefix("@").map(String::from))
-            .collect::<Vec<_>>();
-
-        let mut attachments = self.prepare_attachments(words).await;
+        let mut attachments = self.prepare_attachments(Attachment::parse_all(&chat)).await;
 
         Ok((self.prepare_message(chat, &mut attachments), attachments))
     }
