@@ -1,7 +1,6 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::bail;
-use dissimilar::Chunk;
 use forge_display::DiffFormat;
 use forge_domain::{ExecutableTool, NamedTool, ToolDescription, ToolName};
 use schemars::JsonSchema;
