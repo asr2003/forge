@@ -48,6 +48,7 @@ impl From<&Environment> for Info {
     fn from(env: &Environment) -> Self {
         Info::new()
             .add_title("Environment")
+            .add_item("Forge Version", &env.version)
             .add_item("OS", &env.os)
             .add_item("PID", env.pid)
             .add_item("Working Directory", env.cwd.display())
