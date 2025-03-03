@@ -41,6 +41,7 @@ impl ForgeEnvironmentService {
             .expect("No API key found. Please set one of: FORGE_KEY, OPENROUTER_API_KEY, OPENAI_API_KEY or ANTHROPIC_API_KEY");
         // note: since we know the key is set, we can unwrap here.
         let provider = Provider::from_env().unwrap();
+        let version = std::env::var("FORGE_VERSION").unwrap_or_else(|_| "unknown".to_string());
         Environment {
             os: std::env::consts::OS.to_string(),
             pid: std::process::id(),
