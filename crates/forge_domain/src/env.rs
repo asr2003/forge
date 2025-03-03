@@ -8,6 +8,8 @@ use serde::{Deserialize, Serialize};
 #[setters(strip_option)]
 /// Represents the environment in which the application is running.
 pub struct Environment {
+    /// The Forge application version
+    pub version: String,
     /// The operating system of the environment.
     pub os: String,
     /// The process ID of the current process.
