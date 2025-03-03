@@ -47,6 +47,10 @@ impl OpenRouter {
     }
 
     fn url(&self, path: &str) -> anyhow::Result<Url> {
+        if self.provider.is_mock() {
+            return Ok(Url::parse("mock://local-response")?);
+        }
+
         // Validate the path doesn't contain certain patterns
         if path.contains("://") || path.contains("..") {
             anyhow::bail!("Invalid path: Contains forbidden patterns");
@@ -85,6 +89,21 @@ impl ProviderService for OpenRouter {
         model_id: &ModelId,
         request: ChatContext,
     ) -> ResultStream<ChatCompletionMessage, anyhow::Error> {
+        if self.provider.is_mock() {
+            let mock_path = "./mocks/mock_response.json";
+
+            let mock_response = std::fs::read_to_string(mock_path)
+                .with_context(|| format!("Failed to read mock response file: {}", mock_path))?;
+            let parsed: OpenRouterResponse = serde_json::from_str(&mock_response)
+                .with_context(|| "Failed to parse mock response".to_string())?;
+
+            let completion = ChatCompletionMessage::try_from(parsed)
+                .with_context(|| "Mock response conversion failed".to_string())?;
+
+            let stream = tokio_stream::iter(vec![Ok(completion)]);
+            return Ok(Box::pin(stream));
+        }
+
         let mut request = OpenRouterRequest::from(request)
             .model(model_id.clone())
             .stream(true);
@@ -170,6 +189,24 @@ impl ProviderService for OpenRouter {
     }
 
     async fn parameters(&self, model: &ModelId) -> Result<Parameters> {
+        if self.provider.is_mock() {
+            let mock_path = "./mocks/mock_response.json";
+            let mock_response = std::fs::read_to_string(mock_path)
+                .with_context(|| format!("Failed to read mock response file: {}", mock_path))?;
+
+            let response: ParameterResponse = serde_json::from_str(&mock_response)
+                .with_context(|| "Failed to parse mock parameter response".to_string())?;
+
+            return Ok(Parameters {
+                tool_supported: response
+                    .data
+                    .supported_parameters
+                    .iter()
+                    .flat_map(|parameter| parameter.iter())
+                    .any(|parameter| parameter == "tools"),
+            });
+        }
+
         match self.provider {
             Provider::OpenAI => {
                 // TODO: open-ai provider doesn't support parameters endpoint, so we return true
@@ -204,6 +241,7 @@ impl ProviderService for OpenRouter {
                         .any(|parameter| parameter == "tools"),
                 })
             }
+            Provider::Mock => unreachable!("Mock case is already handled"),
         }
     }
 }
@@ -225,28 +263,29 @@ mod tests {
 
     use super::*;
 
-    fn create_test_client() -> OpenRouter {
-        OpenRouter {
-            client: Client::new(),
-            api_key: None,
-            provider: Provider::OpenRouter,
-        }
+    fn create_test_client(provider: Provider) -> OpenRouter {
+        OpenRouter { client: Client::new(), api_key: None, provider }
     }
 
     #[test]
     fn test_url_basic_path() -> Result<()> {
-        let client = create_test_client();
+        let client = create_test_client(Provider::OpenRouter);
         let url = client.url("chat/completions")?;
         assert_eq!(
             url.as_str(),
             "https://openrouter.ai/api/v1/chat/completions"
         );
+
+        let mock_client = create_test_client(Provider::Mock);
+        let mock_url = mock_client.url("chat/completions")?;
+        assert_eq!(mock_url.as_str(), "mock://local-response");
+
         Ok(())
     }
 
     #[test]
     fn test_url_with_leading_slash() -> Result<()> {
-        let client = create_test_client();
+        let client = create_test_client(Provider::OpenRouter);
         // Remove leading slash since base_url already ends with a slash
         let path = "chat/completions".trim_start_matches('/');
         let url = client.url(path)?;
@@ -254,12 +293,17 @@ mod tests {
             url.as_str(),
             "https://openrouter.ai/api/v1/chat/completions"
         );
+
+        let mock_client = create_test_client(Provider::Mock);
+        let mock_url = mock_client.url(path)?;
+        assert_eq!(mock_url.as_str(), "mock://local-response");
+
         Ok(())
     }
 
     #[test]
     fn test_url_with_special_characters() -> Result<()> {
-        let client = create_test_client();
+        let client = create_test_client(Provider::OpenRouter);
         let url = client.url("parameters/google/gemini-pro-1.5-exp")?;
         assert_eq!(
             url.as_str(),
@@ -270,22 +314,26 @@ mod tests {
 
     #[test]
     fn test_url_with_empty_path() -> Result<()> {
-        let client = create_test_client();
+        let client = create_test_client(Provider::OpenRouter);
         let url = client.url("")?;
         assert_eq!(url.as_str(), "https://openrouter.ai/api/v1/");
+
+        let mock_client = create_test_client(Provider::Mock);
+        let mock_url = mock_client.url("")?;
+        assert_eq!(mock_url.as_str(), "mock://local-response");
         Ok(())
     }
 
     #[test]
     fn test_url_with_invalid_path() {
-        let client = create_test_client();
+        let client = create_test_client(Provider::OpenRouter);
         let result = client.url("https://malicious.com");
         assert!(result.is_err());
     }
 
     #[test]
     fn test_url_with_directory_traversal() {
-        let client = create_test_client();
+        let client = create_test_client(Provider::OpenRouter);
         let result = client.url("../invalid");
         assert!(result.is_err());
     }
