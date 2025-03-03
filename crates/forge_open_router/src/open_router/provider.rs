@@ -5,6 +5,7 @@ use reqwest::Url;
 pub enum Provider {
     OpenAI,
     OpenRouter,
+    Mock,
 }
 
 impl Provider {
@@ -20,7 +21,12 @@ impl Provider {
         match self {
             Self::OpenAI => "https://api.openai.com/v1/".parse().unwrap(),
             Self::OpenRouter => "https://openrouter.ai/api/v1/".parse().unwrap(),
+            Self::Mock => "file:///mock_response.json".parse().unwrap(),
         }
+    }
+
+    pub fn is_mock(&self) -> bool {
+        matches!(self, Self::Mock)
     }
 }
 
@@ -37,6 +43,11 @@ mod tests {
         assert_eq!(
             Provider::OpenRouter.base_url(),
             "https://openrouter.ai/api/v1/".parse().unwrap()
+        );
+
+        assert_eq!(
+            Provider::Mock.base_url(),
+            "http://localhost:4000/mock_response.json".parse().unwrap()
         );
     }
 }

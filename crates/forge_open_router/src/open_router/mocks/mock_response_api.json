@@ -1,0 +1,23 @@
+{
+  "id": "mock-chat-response-123",
+  "provider": "MockProvider",
+  "model": "mock-gpt-4",
+  "object": "chat.completion",
+  "created": 1739949430,
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "This is a mock response from the assistant."
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 5,
+    "completion_tokens": 10,
+    "total_tokens": 15
+  },
+  "system_fingerprint": "mock-fingerprint-001"
+}
