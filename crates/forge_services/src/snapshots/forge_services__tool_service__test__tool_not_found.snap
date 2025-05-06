@@ -2,11 +2,14 @@
 source: crates/forge_services/src/tool_service.rs
 expression: result
 ---
----
-name: nonexistent_tool
-call_id: test
-status: error
+<forge_tool_result><forge_tool_name>nonexistent_tool</forge_tool_name><error><![CDATA[---
+type: Generic
+content: |2
+
+  ERROR:
+  Caused by: No tool with name 'nonexistent_tool' was found. Please try again with one of these tools failure_tool, success_tool
 ---
 
 ERROR:
 Caused by: No tool with name 'nonexistent_tool' was found. Please try again with one of these tools failure_tool, success_tool
+]]></error></forge_tool_result>
