@@ -7,7 +7,6 @@ use forge_domain::{
 };
 use futures::StreamExt;
 use tracing::{debug, info};
-use forge_domain::ToolResponseData;
 
 /// Handles the compaction of conversation contexts to manage token usage
 #[derive(Clone)]
