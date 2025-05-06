@@ -1,5 +1,6 @@
 use super::transformer::Transformer;
 use crate::open_router::request::{OpenRouterRequest, OpenRouterRole};
+use forge_domain::ToolResponseData;
 
 /// Drops all tool call messages and converts them to user/assistant messages
 pub struct DropToolCalls;
@@ -46,7 +47,7 @@ mod tests {
 
         let tool_result = ToolResult::new(ToolName::new("test_tool"))
             .call_id(ToolCallId::new("123"))
-            .success("test result");
+            .success(ToolResponseData::Generic { content: "test result".to_string() });
 
         let context = Context {
             messages: vec![

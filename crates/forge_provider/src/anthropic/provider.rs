@@ -15,6 +15,7 @@ use super::request::Request;
 use super::response::{EventData, ListModelResponse};
 use crate::retry::StatusCodeRetryPolicy;
 use crate::utils::format_http_context;
+use forge_domain::ToolResponseData;
 
 #[derive(Clone, Builder)]
 pub struct Anthropic {
@@ -240,7 +241,9 @@ mod tests {
             .add_tool_results(vec![ToolResult {
                 name: ToolName::new("math"),
                 call_id: Some(ToolCallId::new("math-1")),
-                content: serde_json::json!({"result": 4}).to_string(),
+                data: ToolResponseData::Generic {
+                    content: serde_json::json!({"result": 4}).to_string(),
+                },
                 is_error: false,
             }])
             .tool_choice(ToolChoice::Call(ToolName::new("math")));

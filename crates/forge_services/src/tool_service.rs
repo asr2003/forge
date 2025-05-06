@@ -9,6 +9,7 @@ use tracing::{debug, error};
 
 use crate::tools::ToolRegistry;
 use crate::Infrastructure;
+use forge_domain::ToolResponseData;
 
 // Timeout duration for tool calls
 const TOOL_CALL_TIMEOUT: Duration = Duration::from_secs(300);
@@ -71,7 +72,9 @@ impl ToolService for ForgeToolService {
         };
 
         let result = match output {
-            Ok(output) => ToolResult::from(call).success(output),
+            Ok(output) => ToolResult::from(call).success(ToolResponseData::Generic {
+                content: output,
+            }),
             Err(output) => {
                 error!(error = ?output, "Tool call failed");
                 ToolResult::from(call).failure(output)
@@ -242,7 +245,7 @@ mod test {
         let result = service.call(ToolCallContext::default(), call).await;
 
         // Assert that the result contains a timeout error message
-        let content_str = &result.content;
+        let content_str = &result.content();
         assert!(
             content_str.contains("timed out"),
             "Expected timeout error message"

@@ -7,6 +7,7 @@ use forge_domain::{
 };
 use futures::StreamExt;
 use tracing::{debug, info};
+use forge_domain::ToolResponseData;
 
 /// Handles the compaction of conversation contexts to manage token usage
 #[derive(Clone)]
@@ -342,8 +343,10 @@ mod tests {
 
         let tool_result = ToolResult::new(ToolName::new("forge_tool_fs_read"))
             .call_id(ToolCallId::new("call_123"))
-            .success(json!({"content": "File content"}).to_string());
-
+            .success(ToolResponseData::Generic {
+                content: json!({ "content": "File content" }).to_string(),
+            });
+            
         let context = Context::default()
             .add_message(ContextMessage::system("System message"))
             .add_message(ContextMessage::user("User message 1"))
@@ -385,12 +388,16 @@ mod tests {
 
         let tool_result1 = ToolResult::new(ToolName::new("forge_tool_fs_read"))
             .call_id(ToolCallId::new("call_123"))
-            .success(json!({"content": "File content 1"}).to_string());
-
+            .success(ToolResponseData::Generic {
+                content: json!({ "content": "File content 1" }).to_string(),
+            });
+            
         let tool_result2 = ToolResult::new(ToolName::new("forge_tool_fs_search"))
             .call_id(ToolCallId::new("call_456"))
-            .success(json!({"matches": ["match1", "match2"]}).to_string());
-
+            .success(ToolResponseData::Generic {
+                content: json!({"matches": ["match1", "match2"]}).to_string(),
+            });
+            
         // Create a context where we have a mix of assistant and tool messages
         let context = Context::default()
             .add_message(ContextMessage::user("User message 1")) // 0
@@ -435,11 +442,15 @@ mod tests {
 
         let tool_result1 = ToolResult::new(ToolName::new("forge_tool_fs_read"))
             .call_id(ToolCallId::new("call_123"))
-            .success(json!({"content": "File content 1"}).to_string());
-
+            .success(ToolResponseData::Generic {
+                content: json!({ "content": "File content 1" }).to_string(),
+            });
+            
         let tool_result2 = ToolResult::new(ToolName::new("forge_tool_fs_search"))
             .call_id(ToolCallId::new("call_456"))
-            .success(json!({"matches": ["match1", "match2"]}).to_string());
+            .success(ToolResponseData::Generic {
+                content: json!({"matches": ["match1", "match2"]}).to_string(),
+            });
 
         let context = Context::default()
             .add_message(ContextMessage::user("User message 1"))
@@ -471,12 +482,14 @@ mod tests {
         // Test when we have just tool results in sequence
         let tool_result1 = ToolResult::new(ToolName::new("forge_tool_fs_read"))
             .call_id(ToolCallId::new("call_123"))
-            .success(json!({"content": "File content 1"}).to_string());
-
+            .success(ToolResponseData::Generic {
+                content: json!({ "content": "File content 1" }).to_string(),
+            });
         let tool_result2 = ToolResult::new(ToolName::new("forge_tool_fs_search"))
             .call_id(ToolCallId::new("call_456"))
-            .success(json!({"matches": ["match1", "match2"]}).to_string());
-
+            .success(ToolResponseData::Generic {
+                content: json!({"matches": ["match1", "match2"]}).to_string(),
+            });
         let context = Context::default()
             .add_message(ContextMessage::user("User message 1"))
             .add_message(ContextMessage::tool_result(tool_result1))
@@ -501,8 +514,9 @@ mod tests {
 
         let tool_result = ToolResult::new(ToolName::new("forge_tool_fs_read"))
             .call_id(ToolCallId::new("call_123"))
-            .success(json!({"content": "File content 1"}).to_string());
-
+            .success(ToolResponseData::Generic {
+                content: json!({ "content": "File content 1" }).to_string(),
+            });
         let context = Context::default()
             .add_message(ContextMessage::user("User message 1")) // 0
             .add_message(ContextMessage::assistant(
@@ -604,8 +618,9 @@ mod tests {
 
         let tool_results = vec![ToolResult::new(ToolName::new("forge_tool_fs_read"))
             .call_id(ToolCallId::new("call_123"))
-            .success(json!({"content": "File content 1"}).to_string())];
-
+            .success(ToolResponseData::Generic {
+                content: json!({ "content": "File content 1" }).to_string(),
+            })];
         // Create a context with a sequence at the end
         let context = Context::default()
             .add_message(ContextMessage::system("System message")) // 0
@@ -693,8 +708,9 @@ mod tests {
 
         let tool_result = ToolResult::new(ToolName::new("forge_tool_fs_read"))
             .call_id(ToolCallId::new("call_123"))
-            .success(json!({"content": "File content"}).to_string());
-
+            .success(ToolResponseData::Generic {
+                content: json!({ "content": "File content" }).to_string(),
+            });
         let context = Context::default()
             .add_message(ContextMessage::system("System message")) // 0
             .add_message(ContextMessage::user("Initial user request")) // 1

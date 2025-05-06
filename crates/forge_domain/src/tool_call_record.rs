@@ -3,6 +3,7 @@ use std::fmt::Display;
 use derive_setters::Setters;
 use serde::{Deserialize, Serialize};
 
+use crate::ToolResponseData;
 use crate::{ToolCallFull, ToolResult};
 
 /// Represents a complete tool invocation cycle, containing both the original
