@@ -1,6 +1,5 @@
 use derive_more::derive::Display;
 use derive_setters::Setters;
-use forge_domain::ToolResponseData;
 use forge_domain::{
     Context, ContextMessage, ModelId, Role, ToolCallFull, ToolCallId, ToolDefinition, ToolName,
 };
