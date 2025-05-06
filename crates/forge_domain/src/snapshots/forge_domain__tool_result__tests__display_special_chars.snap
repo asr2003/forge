@@ -2,9 +2,8 @@
 source: crates/forge_domain/src/tool_result.rs
 expression: result.to_string()
 ---
+<forge_tool_result><forge_tool_name>xml_tool</forge_tool_name><success><![CDATA[---
+type: Generic
+content: '{"nested":{"html":"<div>Test</div>"},"text":"Special chars: < > & '' \""}'
 ---
-name: xml_tool
-call_id: null
-status: success
----
-{"nested":{"html":"<div>Test</div>"},"text":"Special chars: < > & ' \""}
+{"nested":{"html":"<div>Test</div>"},"text":"Special chars: < > & ' \""}]]></success></forge_tool_result>

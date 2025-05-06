@@ -2,8 +2,8 @@
 source: crates/forge_domain/src/tool_result.rs
 expression: result
 ---
+<forge_tool_result><forge_tool_name>test_tool</forge_tool_name><success><![CDATA[---
+type: Generic
+content: ''
 ---
-name: test_tool
-call_id: null
-status: success
----
+]]></success></forge_tool_result>

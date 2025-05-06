@@ -2,11 +2,14 @@
 source: crates/forge_domain/src/tool_result.rs
 expression: result
 ---
----
-name: complex_tool
-call_id: 123
-status: error
+<forge_tool_result><forge_tool_name>complex_tool</forge_tool_name><error><![CDATA[---
+type: Generic
+content: |2
+
+  ERROR:
+  Caused by: {"key":"value","number":42}
 ---
 
 ERROR:
 Caused by: {"key":"value","number":42}
+]]></error></forge_tool_result>
