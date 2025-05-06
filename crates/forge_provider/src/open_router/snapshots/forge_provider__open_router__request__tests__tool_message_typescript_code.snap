@@ -4,7 +4,7 @@ expression: router_message
 ---
 {
   "role": "tool",
-  "content": "---\nname: rust_tool\ncall_id: 456\nstatus: success\n---\n{ \"code\": \"fn main<T>(gt: T) {let b = &gt; }\"}",
+  "content": "<forge_tool_result><forge_tool_name>rust_tool</forge_tool_name><success><![CDATA[---\ntype: Generic\ncontent: '{ \"code\": \"fn main<T>(gt: T) {let b = &gt; }\"}'\n---\n{ \"code\": \"fn main<T>(gt: T) {let b = &gt; }\"}]]></success></forge_tool_result>",
   "name": "rust_tool",
   "tool_call_id": "456"
 }

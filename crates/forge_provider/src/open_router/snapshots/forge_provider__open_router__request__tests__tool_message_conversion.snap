@@ -4,7 +4,7 @@ expression: router_message
 ---
 {
   "role": "tool",
-  "content": "---\nname: test_tool\ncall_id: 123\nstatus: success\n---\n{\n               \"user\": \"John\",\n               \"age\": 30,\n               \"address\": [{\"city\": \"New York\"}, {\"city\": \"San Francisco\"}]\n            }",
+  "content": "<forge_tool_result><forge_tool_name>test_tool</forge_tool_name><success><![CDATA[---\ntype: Generic\ncontent: |-\n  {\n                 \"user\": \"John\",\n                 \"age\": 30,\n                 \"address\": [{\"city\": \"New York\"}, {\"city\": \"San Francisco\"}]\n      }\n---\n{\n               \"user\": \"John\",\n               \"age\": 30,\n               \"address\": [{\"city\": \"New York\"}, {\"city\": \"San Francisco\"}]\n    }]]></success></forge_tool_result>",
   "name": "test_tool",
   "tool_call_id": "123"
 }
