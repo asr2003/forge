@@ -3,7 +3,7 @@ use std::fmt::Display;
 use derive_setters::Setters;
 use serde::{Deserialize, Serialize};
 
-use crate::{ToolCallFull, ToolResponseData, ToolResult};
+use crate::{ToolCallFull, ToolResult};
 
 /// Represents a complete tool invocation cycle, containing both the original
 /// call and its corresponding result.
@@ -22,7 +22,7 @@ impl Display for ToolCallRecord {
         } else {
             "success"
         };
-        let content = &self.tool_result.content;
+        let content = &self.tool_result.content();
         let tool_name = self.tool_call.name.as_str();
         writeln!(f, r#"<forge_tool_result tool_name="{tool_name}">"#,)?;
         writeln!(f, r#"<{tag}>{content}</{tag}>"#,)?;
