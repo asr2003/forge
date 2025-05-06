@@ -3,7 +3,7 @@ use std::fmt::Display;
 use derive_setters::Setters;
 use serde::{Deserialize, Serialize};
 
-use crate::{ToolCallFull, ToolResult};
+use crate::{ToolCallFull, ToolResponseData, ToolResult};
 
 /// Represents a complete tool invocation cycle, containing both the original
 /// call and its corresponding result.
@@ -26,7 +26,7 @@ impl Display for ToolCallRecord {
         }
         writeln!(f, "---")?;
 
-        writeln!(f, "{}", self.tool_result.content)?;
+        writeln!(f, "{}", self.tool_result.content())?;
 
         Ok(())
     }
@@ -69,7 +69,9 @@ mod tests {
         // Create a successful result
         let result = ToolResult::new(ToolName::new("test_tool"))
             .call_id(ToolCallId::new("call_123"))
-            .success("Operation completed successfully");
+            .success(ToolResponseData::Generic {
+                content: "Operation completed successfully".to_string(),
+            });
 
         // Create a CallRecord
         let record = ToolCallRecord::new(call, result);
@@ -113,7 +115,7 @@ mod tests {
         // Create a successful result
         let result = ToolResult::new(ToolName::new("fs_read"))
             .call_id(ToolCallId::new("call_abc123"))
-            .success("Contents of the file");
+            .success(ToolResponseData::Generic { content: "Contents of the file".to_string() });
 
         // Create a CallRecord
         let record = ToolCallRecord::new(call, result);
@@ -160,8 +162,10 @@ mod tests {
         };
 
         // Create a result with special characters
-        let result = ToolResult::new(ToolName::new("test_tool"))
-            .success("Result with <tags> & special \"characters\"");
+        let result =
+            ToolResult::new(ToolName::new("test_tool")).success(ToolResponseData::Generic {
+                content: "Result with <tags> & special \"characters\"".to_string(),
+            });
 
         // Create a CallRecord
         let record = ToolCallRecord::new(call, result);
