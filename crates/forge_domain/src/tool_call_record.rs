@@ -3,7 +3,6 @@ use std::fmt::Display;
 use derive_setters::Setters;
 use serde::{Deserialize, Serialize};
 
-use crate::ToolResponseData;
 use crate::{ToolCallFull, ToolResult};
 
 /// Represents a complete tool invocation cycle, containing both the original
@@ -55,7 +54,7 @@ mod tests {
     use serde_json::json;
 
     use super::*;
-    use crate::{ToolCallId, ToolName};
+    use crate::{ToolCallId, ToolName, ToolResponseData};
 
     #[test]
     fn test_call_record_creation() {

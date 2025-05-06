@@ -1,6 +1,5 @@
 use super::transformer::Transformer;
 use crate::open_router::request::{OpenRouterRequest, OpenRouterRole};
-use forge_domain::ToolResponseData;
 
 /// Drops all tool call messages and converts them to user/assistant messages
 pub struct DropToolCalls;
@@ -31,7 +30,7 @@ impl Transformer for DropToolCalls {
 mod tests {
     use forge_domain::{
         ContentMessage, Context, ContextMessage, Role, ToolCallFull, ToolCallId, ToolName,
-        ToolResult,
+        ToolResult, ToolResponseData,
     };
     use serde_json::json;
 

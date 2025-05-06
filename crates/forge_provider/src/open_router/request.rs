@@ -352,7 +352,7 @@ pub enum OpenRouterRole {
 #[cfg(test)]
 mod tests {
     use forge_domain::{
-        ContentMessage, ContextMessage, Role, ToolCallFull, ToolCallId, ToolName, ToolResult,
+        ContentMessage, ContextMessage, Role, ToolCallFull, ToolCallId, ToolName, ToolResult, ToolResponseData,
     };
     use insta::assert_json_snapshot;
     use serde_json::json;

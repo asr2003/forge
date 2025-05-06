@@ -15,7 +15,6 @@ use super::request::Request;
 use super::response::{EventData, ListModelResponse};
 use crate::retry::StatusCodeRetryPolicy;
 use crate::utils::format_http_context;
-use forge_domain::ToolResponseData;
 
 #[derive(Clone, Builder)]
 pub struct Anthropic {
@@ -202,7 +201,7 @@ impl ProviderService for Anthropic {
 #[cfg(test)]
 mod tests {
     use forge_domain::{
-        Context, ContextMessage, ToolCallFull, ToolCallId, ToolChoice, ToolName, ToolResult,
+        Context, ContextMessage, ToolCallFull, ToolCallId, ToolChoice, ToolName, ToolResult, ToolResponseData
     };
 
     use super::*;

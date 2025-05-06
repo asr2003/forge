@@ -240,7 +240,7 @@ impl<T: TemplateService, P: ProviderService> CompactionService for ForgeCompacti
 
 #[cfg(test)]
 mod tests {
-    use forge_domain::{ToolCallFull, ToolCallId, ToolName, ToolResult};
+    use forge_domain::{ToolCallFull, ToolCallId, ToolName, ToolResult, ToolResponseData};
     use pretty_assertions::assert_eq;
     use serde_json::json;
 
