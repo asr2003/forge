@@ -4,6 +4,7 @@ use std::sync::Arc;
 use forge_domain::{
     Tool, ToolCallContext, ToolCallFull, ToolDefinition, ToolName, ToolResult, ToolService,
 };
+use serde_json::json;
 use tokio::time::{timeout, Duration};
 use tracing::{debug, error};
 
@@ -72,9 +73,59 @@ impl ToolService for ForgeToolService {
         };
 
         let result = match output {
-            Ok(output) => ToolResult::from(call).success(ToolResponseData::Generic {
-                content: output,
-            }),
+            Ok(output) => {
+                let data = match name.as_str() {
+                    "fs_read" => {
+                        let path = call
+                            .arguments
+                            .get("path")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("")
+                            .to_string();
+                        ToolResponseData::FileRead { path, content: output }
+                    }
+                    "fs_write" => {
+                        let path = call
+                            .arguments
+                            .get("path")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("")
+                            .to_string();
+                        ToolResponseData::FileWrite {
+                            path,
+                            success: true,
+                            bytes_written: output.len(),
+                        }
+                    }
+                    "shell" => {
+                        let parsed: serde_json::Value =
+                            serde_json::from_str(&output).unwrap_or_else(|_| json!({}));
+                        ToolResponseData::Shell {
+                            command: parsed
+                                .get("command")
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("")
+                                .to_string(),
+                            exit_code: parsed
+                                .get("exit_code")
+                                .and_then(|v| v.as_i64())
+                                .unwrap_or(-1) as i32,
+                            stdout: parsed
+                                .get("stdout")
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("")
+                                .to_string(),
+                            stderr: parsed
+                                .get("stderr")
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("")
+                                .to_string(),
+                        }
+                    }
+                    _ => ToolResponseData::Generic { content: output },
+                };
+                ToolResult::from(call).success(data)
+            }
             Err(output) => {
                 error!(error = ?output, "Tool call failed");
                 ToolResult::from(call).failure(output)

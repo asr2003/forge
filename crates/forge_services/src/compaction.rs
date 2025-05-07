@@ -239,7 +239,7 @@ impl<T: TemplateService, P: ProviderService> CompactionService for ForgeCompacti
 
 #[cfg(test)]
 mod tests {
-    use forge_domain::{ToolCallFull, ToolCallId, ToolName, ToolResult, ToolResponseData};
+    use forge_domain::{ToolCallFull, ToolCallId, ToolName, ToolResponseData, ToolResult};
     use pretty_assertions::assert_eq;
     use serde_json::json;
 
@@ -345,7 +345,7 @@ mod tests {
             .success(ToolResponseData::Generic {
                 content: json!({ "content": "File content" }).to_string(),
             });
-            
+
         let context = Context::default()
             .add_message(ContextMessage::system("System message"))
             .add_message(ContextMessage::user("User message 1"))
@@ -390,13 +390,13 @@ mod tests {
             .success(ToolResponseData::Generic {
                 content: json!({ "content": "File content 1" }).to_string(),
             });
-            
+
         let tool_result2 = ToolResult::new(ToolName::new("forge_tool_fs_search"))
             .call_id(ToolCallId::new("call_456"))
             .success(ToolResponseData::Generic {
                 content: json!({"matches": ["match1", "match2"]}).to_string(),
             });
-            
+
         // Create a context where we have a mix of assistant and tool messages
         let context = Context::default()
             .add_message(ContextMessage::user("User message 1")) // 0
@@ -444,7 +444,7 @@ mod tests {
             .success(ToolResponseData::Generic {
                 content: json!({ "content": "File content 1" }).to_string(),
             });
-            
+
         let tool_result2 = ToolResult::new(ToolName::new("forge_tool_fs_search"))
             .call_id(ToolCallId::new("call_456"))
             .success(ToolResponseData::Generic {
