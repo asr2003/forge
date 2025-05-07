@@ -1,6 +1,5 @@
 use derive_setters::Setters;
 use serde::{Deserialize, Serialize};
-use serde_yaml;
 
 use crate::{ToolCallFull, ToolCallId, ToolName};
 
@@ -36,13 +35,13 @@ impl ToolResponseData {
                 ("File write operation completed.".to_string(), self)
             }
             ToolResponseData::Shell { stdout, stderr, .. } => {
-                (format!("STDOUT:\n{}\nSTDERR:\n{}", stdout, stderr), self)
+                (format!("STDOUT:\n{stdout}\nSTDERR:\n{stderr}"), self)
             }
         };
 
         let yaml =
             serde_yaml::to_string(meta).expect("ToolResponseData must be serializable to YAML");
-        format!("---\n{}---\n{}", yaml, body)
+        format!("---\n{yaml}---\n{body}")
     }
 }
 
@@ -90,7 +89,7 @@ impl ToolResult {
             ToolResponseData::Generic { content } => content.clone(),
             ToolResponseData::FileRead { content, .. } => content.clone(),
             ToolResponseData::Shell { stdout, stderr, .. } => {
-                format!("STDOUT:\n{}\nSTDERR:\n{}", stdout, stderr)
+                format!("STDOUT:\n{stdout}\nSTDERR:\n{stderr}")
             }
             ToolResponseData::FileWrite { .. } => "File write operation completed.".to_string(),
         }
@@ -118,9 +117,9 @@ impl std::fmt::Display for ToolResult {
         )?;
         let cdata = format!("<![CDATA[{}]]>", self.data.to_front_matter());
         if self.is_error {
-            write!(f, "<error>{}</error>", cdata)?;
+            write!(f, "<error>{cdata}</error>")?;
         } else {
-            write!(f, "<success>{}</success>", cdata)?;
+            write!(f, "<success>{cdata}</success>")?;
         }
         write!(f, "</forge_tool_result>")
     }
