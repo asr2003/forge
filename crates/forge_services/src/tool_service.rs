@@ -2,7 +2,8 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use forge_domain::{
-    Tool, ToolCallContext, ToolCallFull, ToolDefinition, ToolName, ToolResult, ToolService,
+    Tool, ToolCallContext, ToolCallFull, ToolDefinition, ToolName, ToolResponseData, ToolResult,
+    ToolService,
 };
 use serde_json::json;
 use tokio::time::{timeout, Duration};
@@ -10,7 +11,6 @@ use tracing::{debug, error};
 
 use crate::tools::ToolRegistry;
 use crate::Infrastructure;
-use forge_domain::ToolResponseData;
 
 // Timeout duration for tool calls
 const TOOL_CALL_TIMEOUT: Duration = Duration::from_secs(300);
